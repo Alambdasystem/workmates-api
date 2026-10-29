@@ -53,7 +53,7 @@ The included `render.yaml` defines one backend web service on a `0.5c-512mb` com
 Start command:
 
 ```bash
-gunicorn --no-control-socket 'server:create_app()' --bind 0.0.0.0:$PORT --workers 1 --threads 8 --timeout 120 --access-logfile -
+gunicorn --no-control-socket 'server:create_app()' --bind 0.0.0.0:$PORT --workers 1 --worker-class sync --threads 1 --timeout 120 --access-logfile -
 ```
 
 Use exactly one Gunicorn worker and one backend instance, with no preload. This first implementation uses a single SQLite database and an in-process job worker. Scaling requires a shared database and a separate worker/queue. Back up SQLite using its backup API so WAL transactions are included.
@@ -111,3 +111,5 @@ Mention mode recognizes the configured workmate name as a whole word, case-insen
 The right-side admin controls turn autopilot and individual tools on or off. Pause cancels pending work; an already-dispatched provider request can still incur charges. Existing history is preserved by additive SQLite migrations. Model IDs are visible in the workspace and `/api/me`. This app uses the OpenAI API independently from a ChatGPT subscription and exposes only the integrations implemented here.
 
 Gunicorn runs with `--no-control-socket` to avoid a fork/thread startup deadlock. The HTTP `/healthz` readiness check verifies the application and SQLite connection before Render routes traffic.
+
+The initial deployment uses one synchronous HTTP worker plus the separate in-process AI job thread. SQLite WAL mode is established once during initialization rather than reconfigured by every request. This keeps database initialization outside concurrent request handling. A long voice-transcription request can briefly queue other HTTP requests in this single-worker MVP.

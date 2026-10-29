@@ -63,6 +63,7 @@ class Store:
         self.path = str(path)
         Path(self.path).parent.mkdir(parents=True, exist_ok=True)
         with self.connect() as db:
+            db.execute('PRAGMA journal_mode=WAL').fetchone()
             db.executescript(SCHEMA)
             # Additive migrations preserve existing groups, messages, and jobs.
             for table, column, definition in (
@@ -79,9 +80,8 @@ class Store:
     def connect(self):
         db = sqlite3.connect(self.path, timeout=15)
         db.row_factory = sqlite3.Row
-        db.execute('PRAGMA foreign_keys=ON')
-        db.execute('PRAGMA journal_mode=WAL')
         try:
+            db.execute('PRAGMA foreign_keys=ON')
             yield db
             db.commit()
         except BaseException:
