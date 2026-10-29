@@ -12,7 +12,8 @@ This service uses real SQLite persistence and makes real OpenAI API calls when c
 | `ADMIN_PASSWORD` | Initial password, at least 14 characters; keep secret |
 | `ADMIN_NAME` | Admin display name; defaults to James Hill |
 | `OPENAI_API_KEY` | Server-side OpenAI API key |
-| `OPENAI_MODEL` | Defaults to `gpt-4.1-mini`; must support Responses and function calling |
+| `OPENAI_MODEL` | Defaults to `gpt-6-astra`; must support Responses and function calling |
+| `TRANSCRIPTION_MODEL` | Defaults to `gpt-transcribe`; used for opt-in microphone recordings |
 | `DB_PATH` | SQLite database path; use `/var/data/workmates.db` on the Render persistent disk |
 | `COOKIE_SECURE` | `true` in production; `false` only for local HTTP |
 
@@ -67,8 +68,9 @@ Enabled tools:
 
 - `create_task`: save a task in the current group, with an assignee label.
 - `save_document`: save a shared text document in the current group.
+- `web_search`: research current information with OpenAI web search; citations are saved and shown as clickable sources.
 
-Tasks do not notify assignees. The agent has no email, browsing, code execution, image generation, or external integrations. Those require additional server-side tools; a system prompt alone cannot grant them.
+Tasks do not notify assignees. The agent has web research when enabled, but no email, code execution, image generation, or other external integrations. Those require additional server-side tools; a system prompt alone cannot grant them.
 
 The agent receives the latest 60 messages through the triggering message, 30 recent task summaries, and 30 document titles. It does not automatically retrieve the full historical archive or saved document bodies. History itself remains stored across restarts.
 
@@ -97,3 +99,13 @@ python -m unittest discover -s tests -v
 ```
 
 Tests cover authorization, invitations, room isolation, persistence, tool execution, denied tools, duplicate sends, workmate cancellation, CSRF, missing-key errors, password changes, and OpenAPI route/response parity. Live OpenAI and Render verification must still be completed after deployment.
+
+## Voice and autopilot (v0.2)
+
+The Talk button requests microphone access only when clicked. Tap Stop to transcribe through the authenticated same-origin backend. Audio goes to OpenAI for transcription and is not saved in the Workmates database. The transcript is inserted into your draft for review; it is never sent to the group automatically. Recordings stop after 90 seconds and when leaving the group or hiding the tab. Browser microphone permissions and HTTPS are required.
+
+`POST /api/rooms/{room_id}/transcribe` accepts raw `audio/webm`, `audio/mp4`, `audio/wav`, or `audio/mpeg` up to 8 MiB. It requires membership, the session cookie and CSRF, and has a per-user rate limit. JSON requests remain limited to 64 KiB.
+
+Mention mode recognizes the configured workmate name as a whole word, case-insensitively, with or without `@`. Autopilot (`mode: all`) follows new group messages, uses an admin-defined `goal`, combines message bursts with a four-second debounce, and spaces updates by at least 30 seconds from the previous request. It does not record background audio or continue working without new messages. Up to 30 automatic requests per group per hour are allowed; explicit named requests remain available. It can choose to stay silent. Only human messages trigger jobs, preventing agent self-loops.
+
+The right-side admin controls turn autopilot and individual tools on or off. Pause cancels pending work; an already-dispatched provider request can still incur charges. Existing history is preserved by additive SQLite migrations. Model IDs are visible in the workspace and `/api/me`. This app uses the OpenAI API independently from a ChatGPT subscription and exposes only the integrations implemented here.

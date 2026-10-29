@@ -24,4 +24,6 @@ services:
       - key: OPENAI_API_KEY
         sync: false
       - key: OPENAI_MODEL
-        value: gpt-4.1-mini
+        value: gpt-6-astra
+      - key: TRANSCRIPTION_MODEL
+        value: gpt-transcribe

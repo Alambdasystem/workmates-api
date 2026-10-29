@@ -2,8 +2,8 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Workmates API",
-    "version": "0.1.0",
-    "description": "Public interface for Workmates Core. Cookie sessions and CSRF; no public signup. Examples are fixtures. Real group/agent implementation lives in workmates-core."
+    "version": "0.2.0",
+    "description": "Workmates backend: cookie sessions, CSRF, admin-owned agents, group tools, autopilot and voice dictation."
   },
   "servers": [
     {
@@ -1704,6 +1704,115 @@
           }
         }
       }
+    },
+    "/api/rooms/{room_id}/transcribe": {
+      "post": {
+        "operationId": "transcribe",
+        "summary": "Transcribe an opt-in microphone recording for a group member",
+        "tags": [
+          "Groups"
+        ],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "room_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Value returned by GET /api/me for this session."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "audio/webm": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            },
+            "audio/mp4": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            },
+            "audio/wav": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            },
+            "audio/mpeg": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Transcript to review before sending",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "text": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Empty or invalid recording"
+          },
+          "401": {
+            "description": "Sign in required"
+          },
+          "403": {
+            "description": "CSRF check failed"
+          },
+          "404": {
+            "description": "Group not accessible"
+          },
+          "413": {
+            "description": "Recording exceeds 8 MiB"
+          },
+          "415": {
+            "description": "Unsupported audio"
+          },
+          "429": {
+            "description": "Voice rate limit"
+          },
+          "502": {
+            "description": "Provider error"
+          },
+          "503": {
+            "description": "Voice not configured"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1777,7 +1886,8 @@
               "type": "string",
               "enum": [
                 "create_task",
-                "save_document"
+                "save_document",
+                "web_search"
               ]
             }
           },
@@ -1788,6 +1898,10 @@
             "type": "string",
             "maxLength": 12000,
             "description": "Returned only to the administrator; omitted for members."
+          },
+          "goal": {
+            "type": "string",
+            "maxLength": 2000
           }
         },
         "required": [
@@ -1830,9 +1944,14 @@
               "type": "string",
               "enum": [
                 "create_task",
-                "save_document"
+                "save_document",
+                "web_search"
               ]
             }
+          },
+          "goal": {
+            "type": "string",
+            "maxLength": 2000
           }
         },
         "required": [
@@ -1864,6 +1983,24 @@
           },
           "created": {
             "type": "number"
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "url": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "url",
+                "title"
+              ]
+            }
           }
         },
         "required": [
@@ -2049,6 +2186,18 @@
           },
           "ai_connected": {
             "type": "boolean"
+          },
+          "model": {
+            "type": "string"
+          },
+          "transcription_model": {
+            "type": "string"
+          },
+          "available_tools": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         },
         "required": [
@@ -2094,7 +2243,8 @@
               "type": "string",
               "enum": [
                 "create_task",
-                "save_document"
+                "save_document",
+                "web_search"
               ]
             }
           },
@@ -2141,6 +2291,13 @@
             "items": {
               "$ref": "#/components/schemas/Action"
             }
+          },
+          "goal": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "autopilot_limit_reached": {
+            "type": "boolean"
           }
         },
         "required": [
