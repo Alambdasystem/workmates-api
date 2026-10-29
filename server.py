@@ -185,11 +185,23 @@ class Agent:
         if self.config['OPENAI_MODEL'].startswith('gpt-6'):
             payload['reasoning'] = {'effort': 'low'}
             payload['include'] = ['reasoning.encrypted_content']
+        sources = []
         for step in range(5):
             with self.store.connect() as db:
                 self.current(db, job)
             result = self.provider(payload, self.config['OPENAI_API_KEY'])
             output = result.get('output', [])
+            for item in output:
+                if item.get('type') == 'web_search_call':
+                    with self.store.connect() as db:
+                        self.current(db, job)
+                        self.store.audit(db, room['id'], room['agent_name'], 'web_search', 'Researched information for the group')
+                for part in item.get('content', []):
+                    for annotation in part.get('annotations', []):
+                        if annotation.get('type') == 'url_citation':
+                            url = annotation.get('url', '')
+                            if urlparse(url).scheme in ('https', 'http') and not any(x['url'] == url for x in sources):
+                                sources.append({'url': url, 'title': str(annotation.get('title') or url)[:300]})
             calls = [o for o in output if o.get('type') == 'function_call']
             if calls:
                 if step == 4:
@@ -203,18 +215,6 @@ class Agent:
                         value = {'error': 'Invalid tool arguments. Use the documented fields and size limits.'}
                     payload['input'].append({'type': 'function_call_output', 'call_id': call['call_id'], 'output': json.dumps(value)})
                 continue
-            sources = []
-            for item in output:
-                if item.get('type') == 'web_search_call':
-                    with self.store.connect() as db:
-                        self.current(db, job)
-                        self.store.audit(db, room['id'], room['agent_name'], 'web_search', 'Researched information for the group')
-                for part in item.get('content', []):
-                    for annotation in part.get('annotations', []):
-                        if annotation.get('type') == 'url_citation':
-                            url = annotation.get('url', '')
-                            if urlparse(url).scheme in ('https', 'http') and not any(x['url'] == url for x in sources):
-                                sources.append({'url': url, 'title': str(annotation.get('title') or url)[:300]})
             text = '\n'.join(c.get('text', '') for o in output if o.get('type') == 'message' for c in o.get('content', []) if c.get('type') == 'output_text').strip()
             if not text:
                 raise RuntimeError('OpenAI returned no text response. Please try a different request.')
