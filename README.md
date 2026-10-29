@@ -53,7 +53,7 @@ The included `render.yaml` defines one backend web service on a `0.5c-512mb` com
 Start command:
 
 ```bash
-gunicorn 'server:create_app()' --bind 0.0.0.0:$PORT --workers 1 --threads 8 --timeout 120 --access-logfile -
+gunicorn --no-control-socket 'server:create_app()' --bind 0.0.0.0:$PORT --workers 1 --threads 8 --timeout 120 --access-logfile -
 ```
 
 Use exactly one Gunicorn worker and one backend instance, with no preload. This first implementation uses a single SQLite database and an in-process job worker. Scaling requires a shared database and a separate worker/queue. Back up SQLite using its backup API so WAL transactions are included.
@@ -109,3 +109,5 @@ The Talk button requests microphone access only when clicked. Tap Stop to transc
 Mention mode recognizes the configured workmate name as a whole word, case-insensitively, with or without `@`. Autopilot (`mode: all`) follows new group messages, uses an admin-defined `goal`, combines message bursts with a four-second debounce, and spaces updates by at least 30 seconds from the previous request. It does not record background audio or continue working without new messages. Up to 30 automatic requests per group per hour are allowed; explicit named requests remain available. It can choose to stay silent. Only human messages trigger jobs, preventing agent self-loops.
 
 The right-side admin controls turn autopilot and individual tools on or off. Pause cancels pending work; an already-dispatched provider request can still incur charges. Existing history is preserved by additive SQLite migrations. Model IDs are visible in the workspace and `/api/me`. This app uses the OpenAI API independently from a ChatGPT subscription and exposes only the integrations implemented here.
+
+Gunicorn runs with `--no-control-socket` to avoid a fork/thread startup deadlock. The HTTP `/healthz` readiness check verifies the application and SQLite connection before Render routes traffic.
