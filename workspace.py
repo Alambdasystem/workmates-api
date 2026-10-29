@@ -5,6 +5,7 @@ import time
 from urllib.parse import unquote
 from flask import abort, g, jsonify, request, redirect, send_file
 from documents import MIMES, export_document, import_document
+from previews import file_preview
 
 
 def register_workspace(app, store, drive, accessible, admin, data, uid, digest, throttle, field):
@@ -91,6 +92,24 @@ def register_workspace(app, store, drive, accessible, admin, data, uid, digest, 
         if not file:
             abort(404, 'File not found.')
         return send_file(io.BytesIO(file['content']), mimetype=file['mime'], as_attachment=True, download_name=file['filename'])
+
+    @app.get('/api/rooms/<room_id>/files/<file_id>/preview')
+    def preview_file(room_id, file_id):
+        with store.connect() as db:
+            accessible(db, room_id)
+            file = db.execute('SELECT filename,content FROM artifacts WHERE room_id=? AND id=?', (room_id, file_id)).fetchone()
+        if not file:
+            abort(404, 'File not found.')
+        try:
+            kind, mime, content = file_preview(file['filename'], file['content'])
+        except ValueError:
+            return jsonify(kind='file', title=file['filename'], body='A visual preview is unavailable for this file. You can still download the original.')
+        if kind == 'image':
+            response = send_file(io.BytesIO(content), mimetype=mime, as_attachment=False, download_name='preview' + ('.svg' if mime == 'image/svg+xml' else ''))
+            # Also sandbox direct navigation to SVG; the UI displays it only as an image.
+            response.headers['Content-Security-Policy'] = "sandbox; default-src 'none'; style-src 'unsafe-inline'"
+            return response
+        return jsonify(kind=kind, title=file['filename'], body=content)
 
     @app.get('/api/integrations/google')
     def google_status():

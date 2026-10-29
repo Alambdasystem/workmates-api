@@ -126,3 +126,10 @@ Drive consent requests read/write Drive scope to support existing personal and s
 OAuth uses PKCE, a ten-minute single-use state bound to a live admin session, server-side code exchange, and a fixed relative callback result. Disconnect removes the encrypted connection and all its mounts and cancels pending work. Already dispatched provider actions cannot be recalled. The Google HTTP transport is injected in tests; live Google operations require configured client credentials and account consent.
 
 Verification includes real DOCX/PDF parsing, export/import roundtrips, edit conflict protection, branch preservation, unauthenticated and cross-group download denial, token encryption, OAuth state replay rejection, Drive ancestry restriction, shared-drive flags, and connection removal. Use `python -m unittest discover -s tests -v`.
+
+
+## Generation preview metadata v04
+
+Group responses include each job's triggering `message_id`, `generated_documents` associations, and generated files' `job_id` and `message_id`. Queued/running jobs remain visible even after eight newer chat messages. Document output associations are committed with their saved action, allowing a saved document to appear before the final AI reply. Cards follow real queued/running/completed/failed/canceled/interrupted states; loading illustrations are not represented as partial model output or percentage progress.
+
+`GET /api/rooms/{room_id}/files/{file_id}/preview` enforces group membership. Recognized raster images return inline with their image MIME. SVG diagrams are bounded, stripped to permitted SVG content, stripped of external resources and active content, and served with a sandbox CSP. Word/PDF text and supported text files return bounded JSON previews. Unknown files keep their original download. Sanitization never rewrites the original. The frontend preserves preview MIME, disposition and sandbox policy.

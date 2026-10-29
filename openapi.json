@@ -2549,6 +2549,42 @@
           }
         }
       }
+    },
+    "/api/rooms/{room_id}/files/{file_id}/preview": {
+      "get": {
+        "operationId": "preview_file",
+        "summary": "Authenticated safe preview of a generated file",
+        "description": "Requires group membership. Raster images and sanitized SVG return inline images; supported documents and text return bounded JSON previews. Original download is separate.",
+        "parameters": [
+          {
+            "name": "room_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "file_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Image or JSON preview"
+          },
+          "401": {
+            "description": "Sign in required"
+          },
+          "404": {
+            "description": "File not found"
+          }
+        }
+      }
     }
   },
   "components": {
