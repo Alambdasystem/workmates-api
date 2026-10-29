@@ -134,4 +134,82 @@ class WorkmatesTests(unittest.TestCase):
         self.assertEqual(self.admin.post('/api/login',json={'email':'admin@example.com','password':'a-new-long-password'}).status_code,200)
         self.assertEqual(self.admin.get('/').headers['X-Frame-Options'],'DENY')
 
+    def test_natural_names_and_word_boundaries(self):
+        self.settings()
+        self.message('REIGN, please help','name'); self.agent.process_one()
+        self.assertEqual(len(self.calls),1)
+        self.message('Foreign policies and reigning champions','not-name')
+        self.assertFalse(self.agent.process_one())
+        self.post('/rooms/'+self.rid+'/workmate',dict(agent_name='Nova',prompt='Help.',enabled=True,mode='mention',tools=[]),method='PATCH')
+        self.message('nova please summarize','custom');self.agent.process_one()
+        self.assertEqual(len(self.calls),2)
+    def test_autopilot_combines_burst_and_never_self_triggers(self):
+        self.post('/rooms/'+self.rid+'/workmate',dict(agent_name='REIGN',prompt='Help.',enabled=True,mode='all',goal='Agree on launch plan',tools=[]),method='PATCH')
+        self.message('We need a launch plan','a'); self.message('Research the options','b')
+        self.assertFalse(self.agent.process_one())
+        with self.app.extensions['store'].connect() as db:
+            self.assertEqual(db.execute("SELECT count(*) FROM jobs WHERE status='queued'").fetchone()[0],1)
+            db.execute('UPDATE jobs SET not_before=0')
+        self.agent.process_one()
+        self.assertIn('Agree on launch plan',self.calls[0]['instructions'])
+        self.assertEqual(len(self.calls[0]['input']),2)
+        self.assertFalse(self.agent.process_one())
+        self.assertEqual(self.room()['jobs'][0]['status'],'completed')
+    def test_research_sources_and_tool_permission(self):
+        self.settings(tools=['web_search']);self.message()
+        self.provider=lambda p,k:{'output':[{'type':'web_search_call'},{'type':'message','content':[{'type':'output_text','text':'Found current information.','annotations':[{'type':'url_citation','url':'https://example.com/reference','title':'Reference'},{'type':'url_citation','url':'javascript:alert(1)','title':'Bad'}]}]}]}
+        self.agent.process_one()
+        self.assertIn({'type':'web_search','search_context_size':'medium'},self.calls[0]['tools'])
+        self.assertEqual(self.room()['messages'][-1]['sources'],[{'url':'https://example.com/reference','title':'Reference'}])
+        self.settings(tools=[]);self.message(nonce='disabled');self.agent.process_one()
+        self.assertEqual(self.calls[-1]['tools'],[])
+    def test_voice_is_group_scoped_and_requires_csrf(self):
+        def transcript(audio,mime,key,model):
+            self.assertEqual(audio,b'audio');self.assertEqual(model,'gpt-transcribe');return 'REIGN help with this plan'
+        app=create_app(self.config,start_worker=False,transcriber=transcript)
+        c=app.test_client();c.post('/api/login',json={'email':'admin@example.com','password':'a-long-admin-password'})
+        csrf=c.get('/api/me').json['csrf'];url='/api/rooms/'+self.rid+'/transcribe'
+        self.assertEqual(c.post(url,data=b'audio',content_type='audio/webm').status_code,403)
+        self.assertEqual(c.post(url,data=b'audio',content_type='audio/webm',headers={'X-CSRF-Token':csrf}).json['text'],'REIGN help with this plan')
+        self.assertEqual(c.post(url,data=b'audio',content_type='text/plain',headers={'X-CSRF-Token':csrf}).status_code,415)
+        member,mcsrf,_=self.member();other=self.post('/rooms',{'name':'Other','description':''}).json['id']
+        self.assertEqual(member.post('/api/rooms/'+other+'/transcribe',data=b'audio',content_type='audio/webm',headers={'X-CSRF-Token':mcsrf}).status_code,404)
+    def test_autopilot_silence_and_pause(self):
+        self.post('/rooms/'+self.rid+'/workmate',dict(agent_name='REIGN',prompt='Help.',enabled=True,mode='all',tools=[]),method='PATCH')
+        self.message('Thanks','a')
+        with self.app.extensions['store'].connect() as db: db.execute('UPDATE jobs SET not_before=0')
+        self.provider=lambda p,k:self.reply('[NO_UPDATE]');self.agent.process_one()
+        self.assertEqual(len(self.room()['messages']),1)
+        self.message('New topic','b');self.settings(False)
+        self.assertFalse(self.agent.process_one())
+    def test_autopilot_limit_keeps_team_chat_and_named_requests_open(self):
+        import time
+        self.post('/rooms/'+self.rid+'/workmate',dict(agent_name='REIGN',prompt='Help.',enabled=True,mode='all',tools=[]),method='PATCH')
+        self.message('First','first')
+        with self.app.extensions['store'].connect() as db:
+            first=db.execute('SELECT * FROM jobs LIMIT 1').fetchone()
+            db.execute("UPDATE jobs SET status='completed'")
+            for i in range(29):
+                db.execute("INSERT INTO jobs(id,room_id,user_id,message_id,revision,status,created) VALUES(?,?,?,?,?,'completed',?)",('limit'+str(i),self.rid,first['user_id'],first['message_id'],first['revision'],time.time()))
+        self.assertEqual(self.message('Team can still chat','team').status_code,201)
+        self.assertEqual(self.room()['jobs'][0]['status'],'chat_only')
+        self.assertTrue(self.room()['autopilot_limit_reached'])
+        self.assertEqual(self.message('REIGN please help','named').status_code,201)
+        self.assertEqual(self.room()['jobs'][0]['status'],'queued')
+    def test_model_configuration_is_visible(self):
+        info=self.admin.get('/api/me').json
+        self.assertEqual(info['model'],'gpt-6-astra')
+        self.assertIn('web_search',info['available_tools'])
+    def test_migration_preserves_old_data(self):
+        import sqlite3
+        from server import SCHEMA
+        old=Path(self.temp.name)/'old.db'
+        with sqlite3.connect(old) as db:
+            db.executescript(SCHEMA)
+            db.execute("INSERT INTO rooms VALUES('old','Existing','Preserve','REIGN','Help',0,'mention','[]',1)")
+        app=create_app(dict(self.config,DB_PATH=str(old)),start_worker=False)
+        with app.extensions['store'].connect() as db:
+            row=db.execute("SELECT * FROM rooms WHERE id='old'").fetchone()
+            self.assertEqual(row['name'],'Existing');self.assertEqual(row['goal'],'')
+
 if __name__=='__main__': unittest.main()
