@@ -53,10 +53,10 @@ The included `render.yaml` defines one backend web service on a `0.5c-512mb` com
 Start command:
 
 ```bash
-gunicorn --no-control-socket 'server:create_app()' --bind 0.0.0.0:$PORT --workers 1 --worker-class sync --threads 1 --timeout 120 --access-logfile -
+python -m waitress --call --listen=0.0.0.0:$PORT --threads=8 --max-request-body-size=8388608 server:create_app
 ```
 
-Use exactly one Gunicorn worker and one backend instance, with no preload. This first implementation uses a single SQLite database and an in-process job worker. Scaling requires a shared database and a separate worker/queue. Back up SQLite using its backup API so WAL transactions are included.
+Use exactly one backend instance. Waitress serves HTTP requests in eight threads, and the application runs one AI job thread. This first implementation uses a single SQLite database and an in-process job worker. Scaling requires a shared database and a separate worker/queue. Back up SQLite using its backup API so WAL transactions are included.
 
 `ADMIN_PASSWORD` initializes an empty database only; it is not a password-reset mechanism. Use Change password in the frontend. There is no email password-recovery flow in this version.
 
@@ -110,6 +110,4 @@ Mention mode recognizes the configured workmate name as a whole word, case-insen
 
 The right-side admin controls turn autopilot and individual tools on or off. Pause cancels pending work; an already-dispatched provider request can still incur charges. Existing history is preserved by additive SQLite migrations. Model IDs are visible in the workspace and `/api/me`. This app uses the OpenAI API independently from a ChatGPT subscription and exposes only the integrations implemented here.
 
-Gunicorn runs with `--no-control-socket` to avoid a fork/thread startup deadlock. The HTTP `/healthz` readiness check verifies the application and SQLite connection before Render routes traffic.
-
-The initial deployment uses one synchronous HTTP worker plus the separate in-process AI job thread. SQLite WAL mode is established once during initialization rather than reconfigured by every request. This keeps database initialization outside concurrent request handling. A long voice-transcription request can briefly queue other HTTP requests in this single-worker MVP.
+The backend uses Waitress to avoid a forking server startup path. SQLite WAL mode is established once during initialization, and `/healthz` verifies the application and database before Render routes traffic.

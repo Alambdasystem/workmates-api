@@ -4,7 +4,7 @@ services:
     runtime: python
     plan: 0.5c-512mb
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn --no-control-socket 'server:create_app()' --bind 0.0.0.0:$PORT --workers 1 --worker-class sync --threads 1 --timeout 120 --access-logfile -
+    startCommand: python -m waitress --call --listen=0.0.0.0:$PORT --threads=8 --max-request-body-size=8388608 server:create_app
     healthCheckPath: /healthz
     disk:
       name: workmates-api-data
