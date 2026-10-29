@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: workmates-api
+    runtime: python
+    plan: 0.5c-512mb
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn 'server:create_app()' --bind 0.0.0.0:$PORT --workers 1 --threads 8 --timeout 120 --access-logfile -
+    healthCheckPath: /healthz
+    disk:
+      name: workmates-api-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: DB_PATH
+        value: /var/data/workmates.db
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: ADMIN_NAME
+        value: James Hill
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_MODEL
+        value: gpt-4.1-mini
