@@ -163,6 +163,13 @@ class WorkmatesTests(unittest.TestCase):
         self.assertEqual(self.room()['messages'][-1]['sources'],[{'url':'https://example.com/reference','title':'Reference'}])
         self.settings(tools=[]);self.message(nonce='disabled');self.agent.process_one()
         self.assertEqual(self.calls[-1]['tools'],[])
+    def test_research_audit_survives_function_continuation(self):
+        self.settings(tools=['web_search','save_document']);self.message()
+        first={'output':[{'type':'web_search_call'},self.tool('save_document',{'title':'Research','body':'https://example.com'})['output'][0]]}
+        responses=iter([first,self.reply('Saved research.')]);self.provider=lambda p,k:next(responses)
+        self.agent.process_one()
+        self.assertEqual(self.room()['jobs'][0]['status'],'completed')
+        self.assertTrue(any(a['action']=='web_search' for a in self.room()['actions']))
     def test_voice_is_group_scoped_and_requires_csrf(self):
         def transcript(audio,mime,key,model):
             self.assertEqual(audio,b'audio');self.assertEqual(model,'gpt-transcribe');return 'REIGN help with this plan'
