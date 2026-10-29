@@ -1813,6 +1813,742 @@
           }
         }
       }
+    },
+    "/api/rooms/{room_id}/documents/{doc_id}": {
+      "get": {
+        "operationId": "get_document",
+        "summary": "Get document",
+        "description": "Requires a signed-in session and group membership where applicable.",
+        "parameters": [
+          {
+            "name": "room_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "doc_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Sign in required"
+          },
+          "403": {
+            "description": "Permission or session check failed"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "edit_document",
+        "summary": "Edit document",
+        "description": "Requires a signed-in session and group membership where applicable.",
+        "parameters": [
+          {
+            "name": "room_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "doc_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Sign in required"
+          },
+          "403": {
+            "description": "Permission or session check failed"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/rooms/{room_id}/documents": {
+      "post": {
+        "operationId": "create_document",
+        "summary": "Create document",
+        "description": "Requires a signed-in session and group membership where applicable.",
+        "parameters": [
+          {
+            "name": "room_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Sign in required"
+          },
+          "403": {
+            "description": "Permission or session check failed"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/rooms/{room_id}/documents/{doc_id}/branch": {
+      "post": {
+        "operationId": "branch_document",
+        "summary": "Branch document",
+        "description": "Requires a signed-in session and group membership where applicable.",
+        "parameters": [
+          {
+            "name": "room_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "doc_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Sign in required"
+          },
+          "403": {
+            "description": "Permission or session check failed"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/rooms/{room_id}/documents/{doc_id}/download/{fmt}": {
+      "get": {
+        "operationId": "download_document",
+        "summary": "Download document",
+        "description": "Requires a signed-in session and group membership where applicable.",
+        "parameters": [
+          {
+            "name": "room_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "doc_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "fmt",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Sign in required"
+          },
+          "403": {
+            "description": "Permission or session check failed"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/rooms/{room_id}/documents/import": {
+      "post": {
+        "operationId": "upload_document",
+        "summary": "Upload document",
+        "description": "Requires a signed-in session and group membership where applicable.",
+        "parameters": [
+          {
+            "name": "room_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Sign in required"
+          },
+          "403": {
+            "description": "Permission or session check failed"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/rooms/{room_id}/files/{file_id}": {
+      "get": {
+        "operationId": "download_file",
+        "summary": "Download file",
+        "description": "Requires a signed-in session and group membership where applicable.",
+        "parameters": [
+          {
+            "name": "room_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "file_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Sign in required"
+          },
+          "403": {
+            "description": "Permission or session check failed"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/integrations/google": {
+      "get": {
+        "operationId": "google_status",
+        "summary": "Google status",
+        "description": "Administrator only. Requires a signed-in session and group membership where applicable.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Sign in required"
+          },
+          "403": {
+            "description": "Permission or session check failed"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/integrations/google/configure": {
+      "post": {
+        "operationId": "google_configure",
+        "summary": "Google configure",
+        "description": "Administrator only. Requires a signed-in session and group membership where applicable.",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Sign in required"
+          },
+          "403": {
+            "description": "Permission or session check failed"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/integrations/google/connect": {
+      "post": {
+        "operationId": "google_connect",
+        "summary": "Google connect",
+        "description": "Administrator only. Requires a signed-in session and group membership where applicable.",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Sign in required"
+          },
+          "403": {
+            "description": "Permission or session check failed"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/integrations/google/callback": {
+      "get": {
+        "operationId": "google_callback",
+        "summary": "Google callback",
+        "description": "OAuth callback uses a single-use state bound to an active admin session.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Sign in required"
+          },
+          "403": {
+            "description": "Permission or session check failed"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/integrations/google/{connection_id}": {
+      "delete": {
+        "operationId": "google_disconnect",
+        "summary": "Google disconnect",
+        "description": "Administrator only. Requires a signed-in session and group membership where applicable.",
+        "parameters": [
+          {
+            "name": "connection_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Sign in required"
+          },
+          "403": {
+            "description": "Permission or session check failed"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/rooms/{room_id}/drive/mounts": {
+      "post": {
+        "operationId": "mount_drive",
+        "summary": "Mount drive",
+        "description": "Administrator only. Requires a signed-in session and group membership where applicable.",
+        "parameters": [
+          {
+            "name": "room_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Sign in required"
+          },
+          "403": {
+            "description": "Permission or session check failed"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/rooms/{room_id}/drive/mounts/{mount_id}": {
+      "delete": {
+        "operationId": "unmount_drive",
+        "summary": "Unmount drive",
+        "description": "Administrator only. Requires a signed-in session and group membership where applicable.",
+        "parameters": [
+          {
+            "name": "room_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "mount_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Sign in required"
+          },
+          "403": {
+            "description": "Permission or session check failed"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/rooms/{room_id}/drive/browse": {
+      "post": {
+        "operationId": "browse_drive",
+        "summary": "Browse drive",
+        "description": "Requires a signed-in session and group membership where applicable.",
+        "parameters": [
+          {
+            "name": "room_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Sign in required"
+          },
+          "403": {
+            "description": "Permission or session check failed"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/rooms/{room_id}/drive/import": {
+      "post": {
+        "operationId": "import_drive",
+        "summary": "Import drive",
+        "description": "Requires a signed-in session and group membership where applicable.",
+        "parameters": [
+          {
+            "name": "room_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Sign in required"
+          },
+          "403": {
+            "description": "Permission or session check failed"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/rooms/{room_id}/drive/save": {
+      "post": {
+        "operationId": "save_drive",
+        "summary": "Save drive",
+        "description": "Requires a signed-in session and group membership where applicable.",
+        "parameters": [
+          {
+            "name": "room_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Sign in required"
+          },
+          "403": {
+            "description": "Permission or session check failed"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/rooms/{room_id}/drive/branch": {
+      "post": {
+        "operationId": "branch_drive",
+        "summary": "Branch drive",
+        "description": "Requires a signed-in session and group membership where applicable.",
+        "parameters": [
+          {
+            "name": "room_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Sign in required"
+          },
+          "403": {
+            "description": "Permission or session check failed"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1885,8 +2621,19 @@
             "items": {
               "type": "string",
               "enum": [
+                "branch_document",
+                "code_interpreter",
                 "create_task",
+                "drive_branch",
+                "drive_list",
+                "drive_read",
+                "drive_save",
+                "image_generation",
+                "read_document",
                 "save_document",
+                "search_documents",
+                "update_document",
+                "update_task",
                 "web_search"
               ]
             }
@@ -1943,8 +2690,19 @@
             "items": {
               "type": "string",
               "enum": [
+                "branch_document",
+                "code_interpreter",
                 "create_task",
+                "drive_branch",
+                "drive_list",
+                "drive_read",
+                "drive_save",
+                "image_generation",
+                "read_document",
                 "save_document",
+                "search_documents",
+                "update_document",
+                "update_task",
                 "web_search"
               ]
             }
@@ -2242,8 +3000,19 @@
             "items": {
               "type": "string",
               "enum": [
+                "branch_document",
+                "code_interpreter",
                 "create_task",
+                "drive_branch",
+                "drive_list",
+                "drive_read",
+                "drive_save",
+                "image_generation",
+                "read_document",
                 "save_document",
+                "search_documents",
+                "update_document",
+                "update_task",
                 "web_search"
               ]
             }

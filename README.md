@@ -70,9 +70,9 @@ Enabled tools:
 - `save_document`: save a shared text document in the current group.
 - `web_search`: research current information with OpenAI web search; citations are saved and shown as clickable sources.
 
-Tasks do not notify assignees. The agent has web research when enabled, but no email, code execution, image generation, or other external integrations. Those require additional server-side tools; a system prompt alone cannot grant them.
+Tasks do not notify assignees. The tool registry now includes hosted web search, code execution, image generation, Canvas document operations and scoped Google Drive operations. Email and arbitrary shell/computer access are not implemented. Each tool must be enabled by the administrator; a system prompt cannot grant tools.
 
-The agent receives the latest 60 messages through the triggering message, 30 recent task summaries, and 30 document titles. It does not automatically retrieve the full historical archive or saved document bodies. History itself remains stored across restarts.
+The agent receives the latest 60 messages through the triggering message, 30 recent task summaries, and 100 document IDs, titles and versions. It does not automatically retrieve the full historical archive or saved document bodies. History itself remains stored across restarts.
 
 Turning a workmate off or changing its settings cancels pending work. Tools check the current revision before committing, and late replies are discarded. Already-dispatched OpenAI requests may still incur usage charges. Previously saved actions remain. A server restart marks in-progress work interrupted rather than replaying potentially completed actions.
 
@@ -111,3 +111,18 @@ Mention mode recognizes the configured workmate name as a whole word, case-insen
 The right-side admin controls turn autopilot and individual tools on or off. Pause cancels pending work; an already-dispatched provider request can still incur charges. Existing history is preserved by additive SQLite migrations. Model IDs are visible in the workspace and `/api/me`. This app uses the OpenAI API independently from a ChatGPT subscription and exposes only the integrations implemented here.
 
 The backend uses Waitress to avoid a forking server startup path. SQLite WAL mode is established once during initialization, and `/healthz` verifies the application and database before Render routes traffic.
+
+
+## Documents Canvas and Drive v03
+
+Group documents use Markdown with headings, bold text, lists, tables and fenced code. They export through authenticated endpoints as real Word DOCX, PDF, Markdown, text or HTML. Canvas provides an editor, formatted preview, version history, conflict detection, separate branches, and an assistant revision request. The UI retains drafts until explicit Save; it never silently replaces them with an AI edit. AI revisions must read the latest version first. Imports support DOCX, text PDFs, MD, TXT, CSV and JSON, at most 8 MB and 40000 extracted characters; scanned PDFs need OCR outside this version. Importing preserves text and tables, not the entire source layout.
+
+Hosted code execution uses an OpenAI sandbox, never the application host. Generated file citations are copied to the persistent database before exposing authenticated download links. Generated PNG images are also persisted. Downloads are capped at 8 MB each and generated files at 64 MB per group. Code and image tools carry separate provider charges and are opt-in for existing groups. New group defaults include document editing and web research. The admin's Enable all available tools control exposes every implemented tool; this is not automatic access to every ChatGPT connector, Canvas product feature, or computer tool.
+
+Google setup: enable Drive API in a Google Cloud project, configure the OAuth consent screen (and test users while in testing), and create a Web application OAuth client. Add `https://workmates-core.onrender.com/api/integrations/google/callback` as an exact authorized redirect URI. Enter its client ID and secret in Drive > Manage Drive connections. Alternatively set `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `PUBLIC_APP_URL` on the backend. Then connect each Google account through Google's consent screen. Credentials are never returned to the browser or model; refresh tokens and stored client settings are encrypted using a generated key next to the database. **Back up both the SQLite database and `.integration-key`; loss of the key requires reconnecting Google accounts.** Do not commit either file.
+
+Drive consent requests read/write Drive scope to support existing personal and shared folders. The application enforces selected folder ancestry on every group operation. Only administrators attach or remove accounts/folders; every member of the target group can work inside an attached folder using the connected account. There may be several accounts and several folders per group. Browse supports pagination and nested folders; import copies readable content into Canvas; save creates a NEW formatted native Google Doc; branch creates a new subfolder. No overwrite, sharing change, file deletion or new Shared Drive creation is exposed. Google may require OAuth verification for a public app using this scope. Testing status may limit token duration. ChatGPT's Google connector authorization is separate and cannot be reused here.
+
+OAuth uses PKCE, a ten-minute single-use state bound to a live admin session, server-side code exchange, and a fixed relative callback result. Disconnect removes the encrypted connection and all its mounts and cancels pending work. Already dispatched provider actions cannot be recalled. The Google HTTP transport is injected in tests; live Google operations require configured client credentials and account consent.
+
+Verification includes real DOCX/PDF parsing, export/import roundtrips, edit conflict protection, branch preservation, unauthenticated and cross-group download denial, token encryption, OAuth state replay rejection, Drive ancestry restriction, shared-drive flags, and connection removal. Use `python -m unittest discover -s tests -v`.
