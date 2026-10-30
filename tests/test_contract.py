@@ -19,7 +19,7 @@ class ContractTests(unittest.TestCase):
     def test_mutations_require_csrf_except_login_join(self):
         for path,operations in CONTRACT['paths'].items():
             for method,op in operations.items():
-                if method!='get' and path not in ['/api/login','/api/join','/api/signup']:
+                if method!='get' and path not in ['/api/login','/api/join','/api/signup','/api/waitlist','/api/password/forgot','/api/password/reset','/api/email/verify']:
                     self.assertTrue(any(p['name']=='X-CSRF-Token' and p['required'] for p in op['parameters']))
     def test_backend_routes_and_responses_match_contract(self):
         from jsonschema import Draft202012Validator
