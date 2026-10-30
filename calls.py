@@ -106,6 +106,25 @@ def register_calls(app,store,accessible,data,uid,digest,throttle,field):
         pid=uid();db.execute('INSERT INTO call_participants(id,call_id,user_id,seen) VALUES(?,?,?,?)',(pid,row['id'],g.user['id'],now))
         db.execute('UPDATE room_calls SET recording=0 WHERE id=?',(row['id'],));event(db,row['id'],'participant_joined',{'name':g.user['name']});return pid
 
+    @app.get('/api/call-files')
+    def call_files():
+        query=request.args.get('q','').strip().lower()[:200]
+        with store.connect() as db:
+            rows=db.execute("SELECT id,name FROM rooms WHERE (?='admin' OR id IN (SELECT room_id FROM members WHERE user_id=?)) AND (id NOT IN (SELECT room_id FROM solo_rooms) OR id IN (SELECT room_id FROM solo_rooms WHERE owner_id=?)) ORDER BY name",(g.user['role'],g.user['id'],g.user['id'])).fetchall()
+            items=[]
+            for room in rows:
+                for kind,table,title in [('document','documents','title'),('file','artifacts','filename')]:
+                    for row in db.execute(f'SELECT id,{title} AS title FROM {table} WHERE room_id=? AND instr(lower({title}),?)>0 LIMIT 30',(room['id'],query)):
+                        items.append(dict(kind=kind,asset_id=row['id'],title=row['title'],room_id=room['id'],room_name=room['name']))
+        return jsonify(items=items[:60],truncated=len(items)>60)
+
+    @app.get('/api/rooms/<room_id>/call-item')
+    def call_item(room_id):
+        with store.connect() as db:
+            accessible(db,room_id)
+            result=workspace_item(db,room_id,request.args.get('kind'),request.args.get('asset_id'))
+        return jsonify(result)
+
     @app.post('/api/rooms/<room_id>/calls')
     def start_call(room_id):
         data();throttle('call-start:'+g.user['id'],15,3600)

@@ -164,3 +164,12 @@ Validation boundary: automated member/owner isolation, saved audio bytes and Ran
 - Meeting controls include People +, Share screen / Stop sharing, full-screen stage, mute and Leave. The participant strip identifies the group; REIGN stays alongside the stage.
 - REIGN does not receive live screen video in this release. Her synchronized narration uses saved documents and images only. Actual two-device display capture and audio remain device acceptance items.
 - TDD: presenter endpoint initially 404 and screen-owner function missing; then permission, exclusive-presenter, source validation, picker/cleanup and destination tests passed.
+
+## S16 Bring saved files into live voice
+- Files buttons in private and group calls open a translucent floating canvas, with source-room picker, saved documents/slides/images, page controls and downloads. Tap the preview or expand to fill the screen; mute/end controls stay available and preview controls do not close the audio connection.
+- On desktop, a voice-opened canvas sits beside the private voice interface. On mobile it floats above the call and can expand. Imported PDF/Office files retain the current text-preview limitation.
+- Private voice exposes find_call_files and open_call_file. REIGN searches real accessible filenames/document titles, asks for clarification on ambiguous matches, and opens a returned ID. Opening returns bounded actual page text; saved images are resized and sent to the active voice session. No live screen video is sent.
+- Search excludes other users' private rooms and rooms the caller cannot access. File reads recheck room/asset scope. A private caller may explicitly open shared work they can already access; this does not invite others or copy group content into other users' private rooms.
+- In group calls, the host/REIGN stage opens the floating canvas on participants' screens; page navigation stays synchronized. Other members may inspect locally and ask REIGN to open a saved item for everyone. Closing a preview leaves the call connected.
+- Discuss with REIGN submits the selected actual page to private live voice, or asks the group voice host to read/open the saved item. Typed and spoken questions may follow.
+- TDD: file context route/search initially failed; bounded context, accessible search, room isolation, actual voice tool lookup/open and duplicate-event tests passed. Real spoken tool invocation and two-device audio remain pending signed-in acceptance.

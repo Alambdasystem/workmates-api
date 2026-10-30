@@ -3865,6 +3865,77 @@
           }
         }
       }
+    },
+    "/api/rooms/{room_id}/call-item": {
+      "get": {
+        "operationId": "getCallFileContext",
+        "summary": "Read a room file for a live conversation",
+        "description": "Requires room membership. Host controls REIGN and stage. Recording requires every active participant to consent.",
+        "parameters": [
+          {
+            "name": "room_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "kind",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "asset_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "403": {
+            "description": "Not permitted"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/call-files": {
+      "get": {
+        "operationId": "findCallFiles",
+        "summary": "Find saved work accessible to the signed-in user",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 200
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Accessible saved-work matches"
+          },
+          "401": {
+            "description": "Sign in required"
+          }
+        }
+      }
     }
   },
   "components": {
