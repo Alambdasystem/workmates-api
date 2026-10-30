@@ -21,6 +21,7 @@ from flask import Flask, abort, g, jsonify, request, send_file, redirect
 from werkzeug.exceptions import HTTPException
 from werkzeug.security import check_password_hash, generate_password_hash
 from documents import export_document, import_document, MIMES
+from accounts import initialize_owners,can_manage,register_accounts
 from solo import register_solo
 from social import register_social, deliver_invite
 from drive import Drive
@@ -529,6 +530,11 @@ def create_app(config=None, start_worker=True, provider=provider_request, transc
             abort(404, 'Group not found.')
         return room
 
+    def room_admin(room_id):
+        with store.connect() as db:
+            accessible(db,room_id)
+            if not can_manage(db,room_id,g.user):abort(403,'Only the room owner or platform administrator can manage this room.')
+
     def data():
         if request.content_length and request.content_length > 65536:
             abort(413, 'Message or settings are too large.')
@@ -543,7 +549,8 @@ def create_app(config=None, start_worker=True, provider=provider_request, transc
         value = dict(row)
         value['enabled'] = bool(value['enabled'])
         value['tools'] = json.loads(value['tools'])
-        if g.user['role'] != 'admin':
+        with store.connect() as db:value['can_manage']=can_manage(db,row['id'],g.user)
+        if not value['can_manage']:
             value.pop('prompt', None)
         with store.connect() as db:value['private']=bool(db.execute('SELECT 1 FROM solo_rooms WHERE room_id=?',(row['id'],)).fetchone())
         return value
@@ -565,7 +572,7 @@ def create_app(config=None, start_worker=True, provider=provider_request, transc
                 abort(403, 'Cross-origin request rejected.')
             if request.headers.get('Sec-Fetch-Site') == 'cross-site':
                 abort(403, 'Cross-site request rejected.')
-        if not request.path.startswith('/api/') or request.path in ('/api/login', '/api/join', '/api/integrations/google/callback'):
+        if not request.path.startswith('/api/') or request.path in ('/api/login', '/api/join', '/api/signup', '/api/integrations/google/callback'):
             return
         with store.connect() as db:
             row = db.execute('SELECT u.*,s.csrf FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token=? AND s.expires>?', (digest(request.cookies.get('wm_session', '')), time.time())).fetchone()
@@ -675,11 +682,13 @@ def create_app(config=None, start_worker=True, provider=provider_request, transc
 
     @app.post('/api/rooms')
     def create_room():
-        admin()
+        throttle('create-room:'+g.user['id'],20,3600)
         d = data()
         room_id = uid()
         with store.connect() as db:
             db.execute('INSERT INTO rooms(id,name,description,agent_name,prompt,enabled,mode,tools,revision) VALUES(?,?,?,?,?,?,?,?,1)', (room_id, field(d, 'name', 80), field(d, 'description', 500, 0), 'REIGN', DEFAULT_PROMPT, 0, 'mention', json.dumps(DEFAULT_TOOLS)))
+            db.execute('INSERT INTO room_owners VALUES(?,?)',(room_id,g.user['id']))
+            db.execute('INSERT INTO members VALUES(?,?)',(room_id,g.user['id']))
             store.audit(db, room_id, g.user['name'], 'group_created', 'Workmate starts off')
         return jsonify(id=room_id), 201
 
@@ -708,7 +717,7 @@ def create_app(config=None, start_worker=True, provider=provider_request, transc
 
     @app.patch('/api/rooms/<room_id>/workmate')
     def configure(room_id):
-        admin()
+        room_admin(room_id)
         d = data()
         enabled, mode, allowed = d.get('enabled'), d.get('mode'), d.get('tools')
         if type(enabled) is not bool or mode not in ('mention', 'all') or not isinstance(allowed, list) or any(not isinstance(t, str) or t not in AVAILABLE_TOOLS for t in allowed):
@@ -750,10 +759,11 @@ def create_app(config=None, start_worker=True, provider=provider_request, transc
 
     @app.delete('/api/rooms/<room_id>/members/<user_id>')
     def remove_member(room_id, user_id):
-        admin()
+        room_admin(room_id)
         with store.connect() as db:
             db.execute('BEGIN IMMEDIATE')
             accessible(db, room_id)
+            if db.execute('SELECT 1 FROM room_owners WHERE room_id=? AND owner_id=?',(room_id,user_id)).fetchone():abort(400,'The room owner cannot be removed.')
             user = db.execute('SELECT * FROM users WHERE id=?', (user_id,)).fetchone()
             if not user or user['role'] == 'admin':
                 abort(400, 'The admin cannot be removed.')
@@ -839,6 +849,8 @@ def create_app(config=None, start_worker=True, provider=provider_request, transc
 
     register_social(app,store,accessible,data,uid,digest,throttle,field)
     register_solo(app,store,accessible,data,uid,digest,throttle,field)
+    initialize_owners(store)
+    register_accounts(app,store,data,field,email_field,throttle,uid,digest,login_response)
     from workspace import register_workspace
     register_workspace(app, store, drive, accessible, admin, data, uid, digest, throttle, field)
 

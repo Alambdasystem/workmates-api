@@ -125,3 +125,16 @@ Verification: member-session sharing/download/preview/Canvas checks and mobile n
 - Live audio itself is not recorded. Live voice has no document/research tools; end the call and use the private text composer for those actions.
 
 Validation boundary: automated member/owner isolation, saved audio bytes and Range playback, transcript deduplication, notification acceptance, themes and proxy checks run with fake OpenAI transports. Actual microphone playback, recipient inbox arrival and native contact/SMS handoff require device acceptance. These are not marked passed by automated tests.
+
+## S11 Public signup and room ownership
+- Anyone may create a member account with a unique email, name and password of at least fourteen characters; supplied platform roles are ignored. Duplicate emails never overwrite an account. Signup is limited per source IP.
+- Signed-in users may create rooms. The creator becomes the owner and a member; ownership survives restarts. Owners may configure their own workmate and manage members. Joining another room does not confer ownership.
+- Existing shared rooms receive the existing platform administrator as owner. Solo conversations retain owner-only access. Members may share invitations to rooms they belong to; platform administration remains separate.
+- Public signup does not include email verification or password-recovery delivery in this release.
+
+## S12 Call connection feedback and orb
+- A visible phone/ringing indicator accompanies the ringtone, then shows microphone, connecting, connected, failed or ended states.
+- A forty-five-second startup deadline stops a stalled call and releases microphone/peer resources. Provider rejection codes are surfaced without exposing secrets; server logs record only a status/code or exception class.
+- The voice session explicitly requests audio output and requests a short spoken greeting on session creation. The speaker-unlock fallback remains available for browser playback restrictions.
+- The previous eye/pupil is replaced with a round, luminous smoky orb with separate ringing/listening/speaking treatments and reduced-motion support.
+- Automated tests validate the greeting request, connected/ended/failed states, mute and media cleanup. Real microphone/provider audio playback remains pending explicit browser sign-in approval after the prior sign-in decline; no automated transport test is represented as hearing REIGN speak.

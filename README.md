@@ -150,3 +150,9 @@ Voice notes, invitations and private voice
 `social.py` stores group voice notes and per-user notifications/themes. Member-created email invites bind to their email; phone-share links are bearer invitations and must be sent only to the intended recipient. Email delivery uses `MAIL_RELAY_URL` and `MAIL_RELAY_SECRET` for the invitation-only HMAC relay in `mail-relay.php`, whose secret is stored outside the web root in a 0700 directory. A submitted response indicates mail-server acceptance, not inbox arrival. No contact-book sync or unattended SMS occurs.
 
 `solo.py` creates owner-only rooms and brokers OpenAI WebRTC offers with the server's existing API key. `REALTIME_MODEL` defaults to `gpt-realtime-2.1`; normal text chat retains `OPENAI_MODEL`. Calls end locally after fifteen minutes or when the app backgrounds. Live transcripts persist privately; raw live audio does not. The live voice transport has no action tools; normal private text chat retains enabled tools. Background images are private, bounded raster uploads that are re-encoded to strip metadata.
+
+Self-service signup and ownership
+---------------------------------
+`accounts.py` adds public account registration and durable room ownership. New accounts are members, never platform administrators. Users may create rooms and manage only their own rooms; invited members may share invitations without gaining owner controls. Existing shared rooms are backfilled to the existing administrator. Private solo rooms remain owner-only. Signup has source-IP throttling and does not overwrite duplicate accounts. Email verification and password-recovery emails are not implemented.
+
+Call startup now explicitly requests spoken audio and a greeting, surfaces provider rejection codes without secrets, and times out after 45 seconds. Orb/ringing state tests use fake media transports; actual audible playback remains a separate acceptance gate.

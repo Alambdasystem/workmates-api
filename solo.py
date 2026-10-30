@@ -4,6 +4,7 @@ import os
 import time
 import uuid
 import urllib.request
+import urllib.error
 from flask import abort,g,jsonify
 
 SCHEMA='''
@@ -13,8 +14,8 @@ CREATE TABLE IF NOT EXISTS live_transcripts(room_id TEXT NOT NULL,event_id TEXT 
 
 def realtime_offer(config,sdp,instructions,safety_id):
     boundary='workmates-'+uuid.uuid4().hex
-    session={'type':'realtime','model':config.get('REALTIME_MODEL') or os.getenv('REALTIME_MODEL','gpt-realtime-2.1'),'instructions':instructions,'audio':{'input':{'transcription':{'model':'gpt-4o-mini-transcribe'},'turn_detection':{'type':'server_vad','threshold':.5,'prefix_padding_ms':300,'silence_duration_ms':650,'create_response':True,'interrupt_response':True}},'output':{'voice':'marin'}},'max_output_tokens':1200}
-    body=(f'--{boundary}\r\nContent-Disposition: form-data; name="sdp"\r\n\r\n'+sdp+f'\r\n--{boundary}\r\nContent-Disposition: form-data; name="session"\r\n\r\n'+json.dumps(session)+f'\r\n--{boundary}--\r\n').encode()
+    session={'type':'realtime','model':config.get('REALTIME_MODEL') or os.getenv('REALTIME_MODEL','gpt-realtime-2.1'),'instructions':instructions,'audio':{'input':{'transcription':{'model':'gpt-4o-mini-transcribe'},'turn_detection':{'type':'server_vad','threshold':.5,'prefix_padding_ms':300,'silence_duration_ms':650,'create_response':True,'interrupt_response':True}},'output':{'voice':'marin'}},'output_modalities':['audio'],'max_output_tokens':1200}
+    body=(f'--{boundary}\r\nContent-Disposition: form-data; name="sdp"\r\n\r\n'+sdp.rstrip()+'\r\n'+f'\r\n--{boundary}\r\nContent-Disposition: form-data; name="session"\r\n\r\n'+json.dumps(session)+f'\r\n--{boundary}--\r\n').encode()
     req=urllib.request.Request('https://api.openai.com/v1/realtime/calls',data=body,headers={'Authorization':'Bearer '+config['OPENAI_API_KEY'],'Content-Type':'multipart/form-data; boundary='+boundary,'OpenAI-Safety-Identifier':safety_id})
     with urllib.request.urlopen(req,timeout=35) as response:answer=response.read(100000).decode()
     return {'sdp':answer,'model':session['model']}
@@ -53,7 +54,17 @@ def register_solo(app,store,accessible,data,uid,digest,throttle,field):
         try:
             transport=app.extensions.get('realtime_offer',realtime_offer)
             result=transport(app.config,sdp,instructions,digest(g.user['id']))
-        except Exception:abort(502,'Could not connect live voice. Check the OpenAI voice model access or try again. Private text chat is still available.')
+        except urllib.error.HTTPError as exc:
+            code='provider_error'
+            try:
+                detail=json.loads(exc.read(8000)).get('error',{})
+                code=str(detail.get('code') or detail.get('type') or code)
+            except Exception:pass
+            app.logger.warning('Live voice handshake rejected: status=%s code=%s',exc.code,code[:80])
+            abort(502,'Live voice could not connect ('+code[:80]+'). Private text chat is available.')
+        except Exception as exc:
+            app.logger.warning('Live voice connection failed: %s',type(exc).__name__)
+            abort(502,'Could not connect live voice. Check the OpenAI voice model access or try again. Private text chat is still available.')
         return jsonify(result)
 
     @app.post('/api/rooms/<room_id>/live/transcript')

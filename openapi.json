@@ -774,7 +774,7 @@
       "post": {
         "operationId": "createGroup",
         "summary": "Create a group with its workmate off",
-        "description": "Administrator only. ",
+        "description": "Any signed-in user can create and own a shared room. Platform administration is not granted.",
         "responses": {
           "201": {
             "description": "Success",
@@ -1040,7 +1040,7 @@
       "patch": {
         "operationId": "configureWorkmate",
         "summary": "Replace workmate settings",
-        "description": "Administrator only. Send all fields. Increments revision and cancels queued/running jobs. Chat history and saved work remain. An already-dispatched provider request may still incur charges.",
+        "description": "Room owner or platform administrator only. Members cannot manage someone else\u2019s room.",
         "responses": {
           "200": {
             "description": "Success",
@@ -1305,7 +1305,7 @@
       "delete": {
         "operationId": "removeMember",
         "summary": "Remove a member from a group",
-        "description": "Administrator only. Cannot remove the admin. Invalidates invitations and cancels pending jobs for this member in this group.",
+        "description": "Room owner or platform administrator only. Members cannot manage someone else\u2019s room.",
         "responses": {
           "200": {
             "description": "Success",
@@ -3084,6 +3084,48 @@
           },
           "404": {
             "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/signup": {
+      "post": {
+        "operationId": "signup",
+        "summary": "Create an account without an invitation",
+        "description": "Creates a member account, never a platform administrator. Duplicate emails are not overwritten. Rate limited. Email verification is not implemented in this release.",
+        "responses": {
+          "200": {
+            "description": "Signed in"
+          },
+          "400": {
+            "description": "Invalid details"
+          },
+          "409": {
+            "description": "Account already exists"
+          }
+        }
+      }
+    },
+    "/api/invites/accept": {
+      "post": {
+        "operationId": "acceptSharedInvite",
+        "summary": "Accept a shared link while already signed in",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Joined"
+          },
+          "400": {
+            "description": "Invalid or expired invite"
           }
         }
       }
