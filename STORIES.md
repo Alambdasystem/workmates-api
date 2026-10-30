@@ -179,3 +179,12 @@ Validation boundary: automated member/owner isolation, saved audio bytes and Ran
 - Theme controls are available at login, in workspace navigation and in both call headers. Dashboard light/dark controls change the same preference. No reload or call restart is needed.
 - Native input color scheme follows the preference. The light private-call view uses the Workmates green-and-white palette; the dark view keeps the smoky orb and green canvas accents.
 - TDD coverage initially failed for missing workspace dark theme; global surface/control coverage and existing dashboard/project flow pass. Signed-in device visual acceptance remains pending.
+
+## S18 Group and call join alerts
+- Joining a shared group through account creation, a shared invite link or notification acceptance notifies existing room members. Joining/starting the live call sends a separate Join call alert. The actor receives no self-alert; private rooms emit none.
+- Alerts are durable in the notification bell, recipient scoped, and reconnect alerts are suppressed for sixty seconds. Rejoining the same active participant does not create another alert.
+- While Workmates stays open, polling displays a fresh join popup with an Open group / Join call action. Displayed alerts are deduplicated per signed-in account/device; stale alerts remain in the bell without ringing repeatedly.
+- Join alerts settings in Home/navigation opt into a short sound and phone/browser notifications. Browser permission is requested only on Save when enabled. Audio requires a gesture after reload. A same-origin service worker displays supported phone notifications and routes clicks to the group; it does not cache app/API data.
+- Closed-app/background push delivery, SMS and actual phone calls are not enabled. Browser throttling, notification permissions and phone settings can limit alerts. These limits are stated in settings.
+- Regression fix: frontend proxy now allowlists and forwards q for call-files and kind/asset_id for call-item. Unknown or duplicate query keys remain rejected; the earlier frontend block on voice file lookup is fixed.
+- TDD: new member/call alerts absent, alert UI missing, worker returned 404 and allowed file-query requests returned 400 before implementation. Recipient/dedup, fresh-popup, worker and query forwarding tests passed. Actual phone notification/sound delivery remains unverified on-device.

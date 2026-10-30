@@ -1,4 +1,5 @@
 """Self-service accounts and room ownership, without platform-role escalation."""
+from social import notify_room_join
 import time
 import sqlite3
 from flask import abort,g,jsonify,request
@@ -36,7 +37,8 @@ def register_accounts(app,store,data,field,email_field,throttle,uid,digest,login
             db.execute('BEGIN IMMEDIATE')
             invite=db.execute("SELECT * FROM invites WHERE token=? AND (email='' OR email=?) AND used=0 AND expires>?",(digest(token),g.user['email'],time.time())).fetchone()
             if not invite:abort(400,'This invitation is invalid, expired or belongs to another email.')
-            db.execute('INSERT OR IGNORE INTO members VALUES(?,?)',(invite['room_id'],g.user['id']))
+            inserted=db.execute('INSERT OR IGNORE INTO members VALUES(?,?)',(invite['room_id'],g.user['id'])).rowcount
+            if inserted:notify_room_join(db,invite['room_id'],g.user['id'],g.user['name'],'member_joined',uid)
             db.execute('UPDATE invites SET used=1 WHERE token=?',(digest(token),))
             store.audit(db,invite['room_id'],g.user['name'],'member_joined','Accepted shared invitation link')
         return jsonify(ok=True,room_id=invite['room_id'])

@@ -13,6 +13,7 @@ from PIL import Image, ImageOps
 SCHEMA='''
 CREATE TABLE IF NOT EXISTS voice_notes(id TEXT PRIMARY KEY,room_id TEXT NOT NULL REFERENCES rooms(id),user_id TEXT NOT NULL REFERENCES users(id),message_id INTEGER NOT NULL REFERENCES messages(id),mime TEXT NOT NULL,content BLOB NOT NULL,duration REAL NOT NULL,created REAL NOT NULL);
 CREATE TABLE IF NOT EXISTS notifications(id TEXT PRIMARY KEY,user_id TEXT NOT NULL REFERENCES users(id),room_id TEXT NOT NULL REFERENCES rooms(id),title TEXT NOT NULL,invite_hash TEXT,seen INTEGER NOT NULL DEFAULT 0,created REAL NOT NULL);
+CREATE TABLE IF NOT EXISTS notification_events(notification_id TEXT PRIMARY KEY REFERENCES notifications(id),actor_id TEXT NOT NULL,kind TEXT NOT NULL,call_id TEXT);
 CREATE TABLE IF NOT EXISTS personal_themes(user_id TEXT PRIMARY KEY REFERENCES users(id),preset TEXT NOT NULL DEFAULT 'none',opacity REAL NOT NULL DEFAULT 0.15,image BLOB,updated REAL NOT NULL);
 '''
 
@@ -28,6 +29,17 @@ def deliver_invite(config,email,inviter,room_name,url):
         with urllib.request.urlopen(req,timeout=15) as r:value=json.load(r)
         return 'submitted' if value.get('accepted') else 'failed'
     except Exception:return 'failed'
+
+def notify_room_join(db,room_id,actor_id,actor_name,kind,uid,call_id=None):
+    if db.execute('SELECT 1 FROM solo_rooms WHERE room_id=?',(room_id,)).fetchone():return
+    room=db.execute('SELECT name FROM rooms WHERE id=?',(room_id,)).fetchone()
+    if not room:return
+    title=actor_name+(' joined the call in ' if kind=='call_joined' else ' joined ')+room['name']
+    for member in db.execute('SELECT user_id FROM members WHERE room_id=? AND user_id!=?',(room_id,actor_id)).fetchall():
+        prior=db.execute('SELECT 1 FROM notifications n JOIN notification_events e ON e.notification_id=n.id WHERE n.user_id=? AND n.room_id=? AND e.actor_id=? AND e.kind=? AND n.created>?',(member['user_id'],room_id,actor_id,kind,time.time()-60)).fetchone()
+        if prior:continue
+        nid=uid();db.execute('INSERT INTO notifications(id,user_id,room_id,title,created) VALUES(?,?,?,?,?)',(nid,member['user_id'],room_id,title,time.time()))
+        db.execute('INSERT INTO notification_events VALUES(?,?,?,?)',(nid,actor_id,kind,call_id))
 
 def register_social(app,store,accessible,data,uid,digest,throttle,field):
     with store.connect() as db:db.executescript(SCHEMA)
@@ -71,7 +83,7 @@ def register_social(app,store,accessible,data,uid,digest,throttle,field):
     @app.get('/api/notifications')
     def list_notifications():
         with store.connect() as db:
-            rows=db.execute('SELECT n.id,n.room_id,n.title,n.seen,n.created,i.used,i.expires FROM notifications n LEFT JOIN invites i ON i.token=n.invite_hash WHERE n.user_id=? ORDER BY n.created DESC LIMIT 50',(g.user['id'],)).fetchall()
+            rows=db.execute("SELECT n.id,n.room_id,n.title,n.seen,n.created,i.used,i.expires,coalesce(e.kind,'invitation') AS kind,e.call_id FROM notifications n LEFT JOIN invites i ON i.token=n.invite_hash LEFT JOIN notification_events e ON e.notification_id=n.id WHERE n.user_id=? ORDER BY n.created DESC LIMIT 50",(g.user['id'],)).fetchall()
         return jsonify([dict(r,can_accept=r['used']==0 and (r['expires'] or 0)>time.time()) for r in rows])
 
     @app.post('/api/notifications/<notification_id>/read')
@@ -89,7 +101,8 @@ def register_social(app,store,accessible,data,uid,digest,throttle,field):
             row=db.execute('SELECT n.room_id,n.invite_hash,i.email,i.used,i.expires FROM notifications n JOIN invites i ON i.token=n.invite_hash WHERE n.id=? AND n.user_id=?',(notification_id,g.user['id'])).fetchone()
             if not row or row['email']!=g.user['email']:abort(404,'Invitation not found.')
             if row['used'] or row['expires']<=time.time():abort(400,'This invitation is expired or has already been accepted.')
-            db.execute('INSERT OR IGNORE INTO members VALUES(?,?)',(row['room_id'],g.user['id']))
+            inserted=db.execute('INSERT OR IGNORE INTO members VALUES(?,?)',(row['room_id'],g.user['id'])).rowcount
+            if inserted:notify_room_join(db,row['room_id'],g.user['id'],g.user['name'],'member_joined',uid)
             db.execute('UPDATE invites SET used=1 WHERE token=?',(row['invite_hash'],))
             db.execute('UPDATE notifications SET seen=1 WHERE id=?',(notification_id,))
             store.audit(db,row['room_id'],g.user['name'],'member_joined','Accepted group invitation')

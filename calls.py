@@ -4,6 +4,7 @@ from flask import abort,g,jsonify,request
 from pypdf import PdfReader
 from pptx import Presentation
 from solo import realtime_offer
+from social import notify_room_join
 
 SCHEMA='''
 CREATE TABLE IF NOT EXISTS call_presentations(call_id TEXT PRIMARY KEY REFERENCES room_calls(id),participant_id TEXT NOT NULL,stream_id TEXT NOT NULL);
@@ -104,7 +105,7 @@ def register_calls(app,store,accessible,data,uid,digest,throttle,field):
             db.execute('UPDATE call_participants SET seen=? WHERE id=?',(now,old['id']));return old['id']
         if db.execute('SELECT count(*) FROM call_participants WHERE call_id=? AND left_at IS NULL AND seen>?',(row['id'],now-45)).fetchone()[0]>=6:abort(409,'This call has reached its six-person limit.')
         pid=uid();db.execute('INSERT INTO call_participants(id,call_id,user_id,seen) VALUES(?,?,?,?)',(pid,row['id'],g.user['id'],now))
-        db.execute('UPDATE room_calls SET recording=0 WHERE id=?',(row['id'],));event(db,row['id'],'participant_joined',{'name':g.user['name']});return pid
+        db.execute('UPDATE room_calls SET recording=0 WHERE id=?',(row['id'],));event(db,row['id'],'participant_joined',{'name':g.user['name']});notify_room_join(db,row['room_id'],g.user['id'],g.user['name'],'call_joined',uid,row['id']);return pid
 
     @app.get('/api/call-files')
     def call_files():

@@ -36,3 +36,8 @@ S16: voice-opened floating file canvas
 S17: global appearance
 - Red: dark theme coverage missing for workspace.
 - Green: explicit login/chat/call/canvas/dialog theme surfaces and controls; saved dashboard preference still drives the project flow tests.
+
+S18: join alerts and file-query regression
+- Red: no member_joined/call_joined notifications; missing alerts.js; /sw.js 404; file query requests rejected with 400.
+- Green: scoped durable member/call alerts, no self-alert, same-participant duplicate suppression; fresh/deduplicated safe popup and Join call action; service worker root route/no-cache; exact file-query allowlists, forwarding and rejection of unknown parameters.
+- Phone/browser permission and physical audio delivery remain manual acceptance; this release does not claim closed-app push, SMS or telephone ringing.

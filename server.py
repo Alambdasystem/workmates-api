@@ -24,7 +24,7 @@ from documents import export_document, import_document, MIMES
 from calls import register_calls
 from accounts import initialize_owners,can_manage,register_accounts
 from solo import register_solo
-from social import register_social, deliver_invite
+from social import notify_room_join, register_social, deliver_invite
 from drive import Drive
 from media_tools import TOOLS as MEDIA_TOOLS, execute_media, assets_for, catalog, visual_parts
 
@@ -641,7 +641,9 @@ def create_app(config=None, start_worker=True, provider=provider_request, transc
             user_id = existing['id'] if existing else uid()
             if not existing:
                 db.execute('INSERT INTO users VALUES(?,?,?,?,?)', (user_id, email, name, generate_password_hash(password), 'member'))
-            db.execute('INSERT OR IGNORE INTO members VALUES(?,?)', (invite['room_id'], user_id))
+            inserted=db.execute('INSERT OR IGNORE INTO members VALUES(?,?)', (invite['room_id'], user_id)).rowcount
+            actor=db.execute('SELECT name FROM users WHERE id=?',(user_id,)).fetchone()
+            if inserted:notify_room_join(db,invite['room_id'],user_id,actor['name'],'member_joined',uid)
             db.execute('UPDATE invites SET used=1 WHERE token=?', (digest(token),))
             store.audit(db, invite['room_id'], email, 'member_joined', 'Invitation accepted')
         return login_response(user_id)
