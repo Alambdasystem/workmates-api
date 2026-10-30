@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS live_transcripts(room_id TEXT NOT NULL,event_id TEXT 
 def realtime_offer(config,sdp,instructions,safety_id):
     boundary='workmates-'+uuid.uuid4().hex
     session={'type':'realtime','model':config.get('REALTIME_MODEL') or os.getenv('REALTIME_MODEL','gpt-realtime-2.1'),'instructions':instructions,'audio':{'input':{'transcription':{'model':'gpt-4o-mini-transcribe'},'turn_detection':{'type':'server_vad','threshold':.5,'prefix_padding_ms':300,'silence_duration_ms':650,'create_response':True,'interrupt_response':True}},'output':{'voice':'marin'}},'output_modalities':['audio'],'max_output_tokens':1200}
+    if config.get('REALTIME_TOOLS'):session['tools']=config['REALTIME_TOOLS']
     body=(f'--{boundary}\r\nContent-Disposition: form-data; name="sdp"\r\n\r\n'+sdp.rstrip()+'\r\n'+f'\r\n--{boundary}\r\nContent-Disposition: form-data; name="session"\r\n\r\n'+json.dumps(session)+f'\r\n--{boundary}--\r\n').encode()
     req=urllib.request.Request('https://api.openai.com/v1/realtime/calls',data=body,headers={'Authorization':'Bearer '+config['OPENAI_API_KEY'],'Content-Type':'multipart/form-data; boundary='+boundary,'OpenAI-Safety-Identifier':safety_id})
     with urllib.request.urlopen(req,timeout=35) as response:answer=response.read(100000).decode()

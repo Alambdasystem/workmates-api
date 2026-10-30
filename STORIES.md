@@ -138,3 +138,20 @@ Validation boundary: automated member/owner isolation, saved audio bytes and Ran
 - The voice session explicitly requests audio output and requests a short spoken greeting on session creation. The speaker-unlock fallback remains available for browser playback restrictions.
 - The previous eye/pupil is replaced with a round, luminous smoky orb with separate ringing/listening/speaking treatments and reduced-motion support.
 - Automated tests validate the greeting request, connected/ended/failed states, mute and media cleanup. Real microphone/provider audio playback remains pending explicit browser sign-in approval after the prior sign-in decline; no automated transport test is represented as hearing REIGN speak.
+
+## S13 Shared REIGN walkthrough — preview implementation
+- Room members join one active, six-person call. The host opens saved Canvas work, generated presentations, images or bounded imported PDF/Office text previews; every participant follows the same page and highlighted field.
+- Membership scopes calls, signaling and shared assets. Only the host controls REIGN and stage. Stale stage revisions return 409. Nonexistent fields are rejected.
+- REIGN uses actual saved-work tools, can pause/resume at the current page, and can persist agreed decisions and tasks. Typed questions persist once and are forwarded to REIGN when connected.
+- Requesting a new member displays a recipient-confirmation prompt; no invitation sends automatically. Private-to-group context promotion remains pending.
+- Participant microphones use WebRTC; the host mixes participant audio for REIGN and forwards REIGN audio to the group. CALL_ICE_SERVERS_JSON may configure a TURN relay. Without TURN, restrictive-network calls remain unverified.
+- Saving a useful voice clip requires all active participants to consent. Joining, leaving or revoking consent stops recording. Unsaved clips require a leave/discard confirmation.
+- Automated permission, synchronized stage, optimistic concurrency, tool idempotency, consent and safe-render tests pass. True multi-device media and audible provider playback have NOT passed acceptance. Production sign-in retry remains blocked by the earlier declined approval; no alternate login route was used.
+
+## S14 Dashboard before chat
+- After normal login, open Home rather than automatically entering the first room. Existing Canvas deep links and invitation acceptance still open their destination.
+- Match the green-and-white reference with saved light/dark appearance, a project idea composer, optional browser voice dictation, REIGN toggle, recent-room carousel and conversation list.
+- List real latest message text, activity time and membership counts; sort recent activity without inventing unread counts or teammates. Filter groups or private REIGN rooms. Private does not imply person-to-person direct messaging.
+- Creating a project saves the room and its brief, opens the chat, optionally enables REIGN, then opens the existing invitation confirmation form. Automatic contact recommendations and dashboard attachment upload remain pending.
+- Home is available in the navigation drawer. Rightward swipes starting within 32px of the mobile left edge open it; leftward swipes close it. Vertical scrolling, short gestures and form/media interactions are protected.
+- Unit tests were written red before implementation, then passed for summaries, sorting/filtering, project title limits, project create/open/settings/invite flow and swipe intent. Signed-in mobile visual acceptance remains pending.

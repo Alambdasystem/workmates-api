@@ -21,6 +21,7 @@ from flask import Flask, abort, g, jsonify, request, send_file, redirect
 from werkzeug.exceptions import HTTPException
 from werkzeug.security import check_password_hash, generate_password_hash
 from documents import export_document, import_document, MIMES
+from calls import register_calls
 from accounts import initialize_owners,can_manage,register_accounts
 from solo import register_solo
 from social import register_social, deliver_invite
@@ -678,7 +679,15 @@ def create_app(config=None, start_worker=True, provider=provider_request, transc
     def rooms():
         with store.connect() as db:
             rows = db.execute("SELECT * FROM rooms WHERE (?='admin' OR id IN (SELECT room_id FROM members WHERE user_id=?)) AND (id NOT IN (SELECT room_id FROM solo_rooms) OR id IN (SELECT room_id FROM solo_rooms WHERE owner_id=?)) ORDER BY name", (g.user['role'], g.user['id'],g.user['id'])).fetchall()
-        return jsonify([room_dict(r) for r in rows])
+            summaries=[]
+            for row in rows:
+                item=room_dict(row)
+                last=db.execute('SELECT author,content,created,kind FROM messages WHERE room_id=? ORDER BY id DESC LIMIT 1',(row['id'],)).fetchone()
+                item['last_message']=dict(last) if last else None
+                item['last_activity']=last['created'] if last else 0
+                item['member_count']=db.execute('SELECT count(*) FROM members WHERE room_id=?',(row['id'],)).fetchone()[0]
+                summaries.append(item)
+        return jsonify(summaries)
 
     @app.post('/api/rooms')
     def create_room():
@@ -849,6 +858,7 @@ def create_app(config=None, start_worker=True, provider=provider_request, transc
 
     register_social(app,store,accessible,data,uid,digest,throttle,field)
     register_solo(app,store,accessible,data,uid,digest,throttle,field)
+    register_calls(app,store,accessible,data,uid,digest,throttle,field)
     initialize_owners(store)
     register_accounts(app,store,data,field,email_field,throttle,uid,digest,login_response)
     from workspace import register_workspace

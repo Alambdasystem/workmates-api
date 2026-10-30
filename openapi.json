@@ -3129,6 +3129,695 @@
           }
         }
       }
+    },
+    "/api/rooms/{room_id}/calls": {
+      "post": {
+        "operationId": "call_post_api_rooms_room_id_calls",
+        "summary": "Room-scoped call calls",
+        "description": "Requires room membership. Host controls REIGN and stage. Recording requires every active participant to consent.",
+        "parameters": [
+          {
+            "name": "room_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "403": {
+            "description": "Not permitted"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/rooms/{room_id}/calls/{call_id}": {
+      "get": {
+        "operationId": "call_get_api_rooms_room_id_calls_call_id",
+        "summary": "Room-scoped call {call_id}",
+        "description": "Requires room membership. Host controls REIGN and stage. Recording requires every active participant to consent.",
+        "parameters": [
+          {
+            "name": "room_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "call_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "403": {
+            "description": "Not permitted"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/rooms/{room_id}/calls/{call_id}/join": {
+      "post": {
+        "operationId": "call_post_api_rooms_room_id_calls_call_id_join",
+        "summary": "Room-scoped call join",
+        "description": "Requires room membership. Host controls REIGN and stage. Recording requires every active participant to consent.",
+        "parameters": [
+          {
+            "name": "room_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "call_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "403": {
+            "description": "Not permitted"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/rooms/{room_id}/calls/{call_id}/poll": {
+      "post": {
+        "operationId": "call_post_api_rooms_room_id_calls_call_id_poll",
+        "summary": "Room-scoped call poll",
+        "description": "Requires room membership. Host controls REIGN and stage. Recording requires every active participant to consent.",
+        "parameters": [
+          {
+            "name": "room_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "call_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "403": {
+            "description": "Not permitted"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/rooms/{room_id}/calls/{call_id}/signals": {
+      "post": {
+        "operationId": "call_post_api_rooms_room_id_calls_call_id_signals",
+        "summary": "Room-scoped call signals",
+        "description": "Requires room membership. Host controls REIGN and stage. Recording requires every active participant to consent.",
+        "parameters": [
+          {
+            "name": "room_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "call_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "403": {
+            "description": "Not permitted"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/rooms/{room_id}/calls/{call_id}/stage": {
+      "patch": {
+        "operationId": "call_patch_api_rooms_room_id_calls_call_id_stage",
+        "summary": "Room-scoped call stage",
+        "description": "Requires room membership. Host controls REIGN and stage. Recording requires every active participant to consent.",
+        "parameters": [
+          {
+            "name": "room_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "call_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "403": {
+            "description": "Not permitted"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/rooms/{room_id}/calls/{call_id}/item": {
+      "get": {
+        "operationId": "call_get_api_rooms_room_id_calls_call_id_item",
+        "summary": "Room-scoped call item",
+        "description": "Requires room membership. Host controls REIGN and stage. Recording requires every active participant to consent.",
+        "parameters": [
+          {
+            "name": "room_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "call_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "403": {
+            "description": "Not permitted"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/rooms/{room_id}/calls/{call_id}/consent": {
+      "post": {
+        "operationId": "call_post_api_rooms_room_id_calls_call_id_consent",
+        "summary": "Room-scoped call consent",
+        "description": "Requires room membership. Host controls REIGN and stage. Recording requires every active participant to consent.",
+        "parameters": [
+          {
+            "name": "room_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "call_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "403": {
+            "description": "Not permitted"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/rooms/{room_id}/calls/{call_id}/recording": {
+      "post": {
+        "operationId": "call_post_api_rooms_room_id_calls_call_id_recording",
+        "summary": "Room-scoped call recording",
+        "description": "Requires room membership. Host controls REIGN and stage. Recording requires every active participant to consent.",
+        "parameters": [
+          {
+            "name": "room_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "call_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "403": {
+            "description": "Not permitted"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/rooms/{room_id}/calls/{call_id}/clip/{recording_id}": {
+      "post": {
+        "operationId": "call_post_api_rooms_room_id_calls_call_id_clip_recording_id",
+        "summary": "Room-scoped call {recording_id}",
+        "description": "Requires room membership. Host controls REIGN and stage. Recording requires every active participant to consent.",
+        "parameters": [
+          {
+            "name": "room_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "call_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "recording_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "403": {
+            "description": "Not permitted"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/rooms/{room_id}/calls/{call_id}/question": {
+      "post": {
+        "operationId": "call_post_api_rooms_room_id_calls_call_id_question",
+        "summary": "Room-scoped call question",
+        "description": "Requires room membership. Host controls REIGN and stage. Recording requires every active participant to consent.",
+        "parameters": [
+          {
+            "name": "room_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "call_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "403": {
+            "description": "Not permitted"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/rooms/{room_id}/calls/{call_id}/caption": {
+      "post": {
+        "operationId": "call_post_api_rooms_room_id_calls_call_id_caption",
+        "summary": "Room-scoped call caption",
+        "description": "Requires room membership. Host controls REIGN and stage. Recording requires every active participant to consent.",
+        "parameters": [
+          {
+            "name": "room_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "call_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "403": {
+            "description": "Not permitted"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/rooms/{room_id}/calls/{call_id}/leave": {
+      "post": {
+        "operationId": "call_post_api_rooms_room_id_calls_call_id_leave",
+        "summary": "Room-scoped call leave",
+        "description": "Requires room membership. Host controls REIGN and stage. Recording requires every active participant to consent.",
+        "parameters": [
+          {
+            "name": "room_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "call_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "403": {
+            "description": "Not permitted"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/rooms/{room_id}/calls/{call_id}/agent-action": {
+      "post": {
+        "operationId": "call_post_api_rooms_room_id_calls_call_id_agent_action",
+        "summary": "Room-scoped call agent-action",
+        "description": "Requires room membership. Host controls REIGN and stage. Recording requires every active participant to consent.",
+        "parameters": [
+          {
+            "name": "room_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "call_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "403": {
+            "description": "Not permitted"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/rooms/{room_id}/calls/{call_id}/live": {
+      "post": {
+        "operationId": "call_post_api_rooms_room_id_calls_call_id_live",
+        "summary": "Room-scoped call live",
+        "description": "Requires room membership. Host controls REIGN and stage. Recording requires every active participant to consent.",
+        "parameters": [
+          {
+            "name": "room_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "call_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "403": {
+            "description": "Not permitted"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
     }
   },
   "components": {
