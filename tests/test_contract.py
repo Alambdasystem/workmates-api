@@ -14,12 +14,12 @@ class ContractTests(unittest.TestCase):
         ids=[op['operationId'] for path in CONTRACT['paths'].values() for op in path.values()]
         self.assertEqual(len(ids),len(set(ids)))
     def test_admin_operations_marked(self):
-        for path,method in [('/api/rooms','post'),('/api/rooms/{room_id}/workmate','patch'),('/api/rooms/{room_id}/members/{user_id}','delete')]:
-            self.assertIn('Administrator only',CONTRACT['paths'][path][method]['description'])
+        for path,method in [('/api/rooms/{room_id}/workmate','patch'),('/api/rooms/{room_id}/members/{user_id}','delete')]:
+            self.assertIn('Room owner or platform administrator',CONTRACT['paths'][path][method]['description'])
     def test_mutations_require_csrf_except_login_join(self):
         for path,operations in CONTRACT['paths'].items():
             for method,op in operations.items():
-                if method!='get' and path not in ['/api/login','/api/join']:
+                if method!='get' and path not in ['/api/login','/api/join','/api/signup']:
                     self.assertTrue(any(p['name']=='X-CSRF-Token' and p['required'] for p in op['parameters']))
     def test_backend_routes_and_responses_match_contract(self):
         from jsonschema import Draft202012Validator

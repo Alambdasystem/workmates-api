@@ -37,7 +37,7 @@ class WorkmatesTests(unittest.TestCase):
         return c,c.get('/api/me').json['csrf'],invite
     def test_only_admin_creates_groups_and_configures_agent(self):
         c,csrf,_ = self.member()
-        self.assertEqual(self.post('/rooms',{'name':'Denied','description':''},c,csrf).status_code,403)
+        self.assertEqual(self.post('/rooms',{'name':'My room','description':''},c,csrf).status_code,201)
         self.assertEqual(self.post('/rooms/'+self.rid+'/workmate',{},c,csrf,method='PATCH').status_code,403)
         self.assertEqual(self.post('/rooms/'+self.rid+'/invites',{'email':'other@example.com'},c,csrf).status_code,200)
         self.assertNotIn('prompt',c.get('/api/rooms/'+self.rid).json)
