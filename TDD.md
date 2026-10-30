@@ -32,3 +32,7 @@ S16: voice-opened floating file canvas
 - Red: missing call_files.js; file context endpoint lacked pages; voice search endpoint returned 404.
 - Green: actual page/length/untrusted-content context checks; room/asset authorization; accessible title search; private voice lookup/open executes the floating viewer and returns actual page text; duplicate tool events are ignored.
 - UI handlers do not invoke endLive/closeMeeting when opening or expanding a file. Closing the call cleans up its viewer. Browser display and real spoken requests remain unverified; no automated test proves audible voice.
+
+S17: global appearance
+- Red: dark theme coverage missing for workspace.
+- Green: explicit login/chat/call/canvas/dialog theme surfaces and controls; saved dashboard preference still drives the project flow tests.

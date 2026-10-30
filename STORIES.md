@@ -173,3 +173,9 @@ Validation boundary: automated member/owner isolation, saved audio bytes and Ran
 - In group calls, the host/REIGN stage opens the floating canvas on participants' screens; page navigation stays synchronized. Other members may inspect locally and ask REIGN to open a saved item for everyone. Closing a preview leaves the call connected.
 - Discuss with REIGN submits the selected actual page to private live voice, or asks the group voice host to read/open the saved item. Typed and spoken questions may follow.
 - TDD: file context route/search initially failed; bounded context, accessible search, room isolation, actual voice tool lookup/open and duplicate-event tests passed. Real spoken tool invocation and two-device audio remain pending signed-in acceptance.
+
+## S17 One appearance across all pages
+- The saved light/dark preference applies to dashboard, login, group chat, navigation, Agent Drive, dialogs, Canvas, previews, group calls, private voice and the floating call-file canvas.
+- Theme controls are available at login, in workspace navigation and in both call headers. Dashboard light/dark controls change the same preference. No reload or call restart is needed.
+- Native input color scheme follows the preference. The light private-call view uses the Workmates green-and-white palette; the dark view keeps the smoky orb and green canvas accents.
+- TDD coverage initially failed for missing workspace dark theme; global surface/control coverage and existing dashboard/project flow pass. Signed-in device visual acceptance remains pending.
