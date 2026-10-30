@@ -26,6 +26,8 @@ def register_accounts(app,store,data,field,email_field,throttle,uid,digest,login
         try:
             with store.connect() as db:
                 db.execute('INSERT INTO users VALUES(?,?,?,?,?)',(user_id,email,name,generate_password_hash(password),'member'))
+                mailer=app.extensions.get('mailer')
+                if mailer:mailer.verify_email(db,user_id,email,name)
         except sqlite3.IntegrityError:abort(409,'An account already uses this email. Sign in instead.')
         return login_response(user_id)
 

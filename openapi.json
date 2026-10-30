@@ -3936,6 +3936,348 @@
           }
         }
       }
+    },
+    "/api/waitlist": {
+      "post": {
+        "operationId": "growth_post_api_waitlist",
+        "summary": "Waitlist",
+        "description": "Public rate-limited request; origin validated.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid or expired request"
+          },
+          "401": {
+            "description": "Sign in required"
+          },
+          "403": {
+            "description": "Not permitted"
+          },
+          "429": {
+            "description": "Rate limit reached"
+          }
+        }
+      }
+    },
+    "/api/admin/waitlist": {
+      "get": {
+        "operationId": "growth_get_api_admin_waitlist",
+        "summary": "Waitlist",
+        "description": "Authenticated request; administrator required for /admin routes. No mail bodies or account tokens are returned.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid or expired request"
+          },
+          "401": {
+            "description": "Sign in required"
+          },
+          "403": {
+            "description": "Not permitted"
+          },
+          "429": {
+            "description": "Rate limit reached"
+          }
+        }
+      }
+    },
+    "/api/admin/waitlist.csv": {
+      "get": {
+        "operationId": "growth_get_api_admin_waitlist_csv",
+        "summary": "Waitlist.Csv",
+        "description": "Authenticated request; administrator required for /admin routes. No mail bodies or account tokens are returned.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid or expired request"
+          },
+          "401": {
+            "description": "Sign in required"
+          },
+          "403": {
+            "description": "Not permitted"
+          },
+          "429": {
+            "description": "Rate limit reached"
+          }
+        }
+      }
+    },
+    "/api/password/forgot": {
+      "post": {
+        "operationId": "growth_post_api_password_forgot",
+        "summary": "Forgot",
+        "description": "Public rate-limited request; origin validated.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid or expired request"
+          },
+          "401": {
+            "description": "Sign in required"
+          },
+          "403": {
+            "description": "Not permitted"
+          },
+          "429": {
+            "description": "Rate limit reached"
+          }
+        }
+      }
+    },
+    "/api/password/reset": {
+      "post": {
+        "operationId": "growth_post_api_password_reset",
+        "summary": "Reset",
+        "description": "Public rate-limited request; origin validated.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid or expired request"
+          },
+          "401": {
+            "description": "Sign in required"
+          },
+          "403": {
+            "description": "Not permitted"
+          },
+          "429": {
+            "description": "Rate limit reached"
+          }
+        }
+      }
+    },
+    "/api/email/verify": {
+      "post": {
+        "operationId": "growth_post_api_email_verify",
+        "summary": "Verify",
+        "description": "Public rate-limited request; origin validated.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid or expired request"
+          },
+          "401": {
+            "description": "Sign in required"
+          },
+          "403": {
+            "description": "Not permitted"
+          },
+          "429": {
+            "description": "Rate limit reached"
+          }
+        }
+      }
+    },
+    "/api/preferences/email": {
+      "get": {
+        "operationId": "growth_get_api_preferences_email",
+        "summary": "Email",
+        "description": "Authenticated request; administrator required for /admin routes. No mail bodies or account tokens are returned.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid or expired request"
+          },
+          "401": {
+            "description": "Sign in required"
+          },
+          "403": {
+            "description": "Not permitted"
+          },
+          "429": {
+            "description": "Rate limit reached"
+          }
+        }
+      },
+      "post": {
+        "operationId": "growth_post_api_preferences_email",
+        "summary": "Email",
+        "description": "Authenticated request; administrator required for /admin routes. No mail bodies or account tokens are returned.",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid or expired request"
+          },
+          "401": {
+            "description": "Sign in required"
+          },
+          "403": {
+            "description": "Not permitted"
+          },
+          "429": {
+            "description": "Rate limit reached"
+          }
+        }
+      }
+    },
+    "/api/preferences/email/verify": {
+      "post": {
+        "operationId": "growth_post_api_preferences_email_verify",
+        "summary": "Verify",
+        "description": "Authenticated request; administrator required for /admin routes. No mail bodies or account tokens are returned.",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid or expired request"
+          },
+          "401": {
+            "description": "Sign in required"
+          },
+          "403": {
+            "description": "Not permitted"
+          },
+          "429": {
+            "description": "Rate limit reached"
+          }
+        }
+      }
+    },
+    "/api/rooms/{room_id}/reminders": {
+      "post": {
+        "operationId": "growth_post_api_rooms_room_id_reminders",
+        "summary": "Reminders",
+        "description": "Authenticated request; administrator required for /admin routes. No mail bodies or account tokens are returned.",
+        "parameters": [
+          {
+            "name": "room_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid or expired request"
+          },
+          "401": {
+            "description": "Sign in required"
+          },
+          "403": {
+            "description": "Not permitted"
+          },
+          "429": {
+            "description": "Rate limit reached"
+          }
+        }
+      }
+    },
+    "/api/admin/mail": {
+      "get": {
+        "operationId": "growth_get_api_admin_mail",
+        "summary": "Mail",
+        "description": "Authenticated request; administrator required for /admin routes. No mail bodies or account tokens are returned.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid or expired request"
+          },
+          "401": {
+            "description": "Sign in required"
+          },
+          "403": {
+            "description": "Not permitted"
+          },
+          "429": {
+            "description": "Rate limit reached"
+          }
+        }
+      }
+    },
+    "/api/admin/mail/test": {
+      "post": {
+        "operationId": "growth_post_api_admin_mail_test",
+        "summary": "Test",
+        "description": "Authenticated request; administrator required for /admin routes. No mail bodies or account tokens are returned.",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid or expired request"
+          },
+          "401": {
+            "description": "Sign in required"
+          },
+          "403": {
+            "description": "Not permitted"
+          },
+          "429": {
+            "description": "Rate limit reached"
+          }
+        }
+      }
     }
   },
   "components": {

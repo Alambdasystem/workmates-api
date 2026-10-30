@@ -41,3 +41,9 @@ S18: join alerts and file-query regression
 - Red: no member_joined/call_joined notifications; missing alerts.js; /sw.js 404; file query requests rejected with 400.
 - Green: scoped durable member/call alerts, no self-alert, same-participant duplicate suppression; fresh/deduplicated safe popup and Join call action; service worker root route/no-cache; exact file-query allowlists, forwarding and rejection of unknown parameters.
 - Phone/browser permission and physical audio delivery remain manual acceptance; this release does not claim closed-app push, SMS or telephone ringing.
+
+S19/S20 release
+- Composer call button initially absent; actual member summaries and automatic host-only REIGN startup now pass.
+- Public customer landing was absent; public/member route separation now passes.
+- Initial growth test fixture lacked its shared member helper and was corrected. Persistence then failed on the waiting-list insert column count; corrected and reran green. This is recorded as fixture/implementation repair, not a fabricated red-before-code test sequence.
+- Recovery security tests validate single use, expiry and session revocation; email tests validate ownership opt-in and encrypted outbox storage/clearing. Mail server acceptance and actual inbox delivery remain distinct.

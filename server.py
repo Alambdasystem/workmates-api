@@ -573,7 +573,7 @@ def create_app(config=None, start_worker=True, provider=provider_request, transc
                 abort(403, 'Cross-origin request rejected.')
             if request.headers.get('Sec-Fetch-Site') == 'cross-site':
                 abort(403, 'Cross-site request rejected.')
-        if not request.path.startswith('/api/') or request.path in ('/api/login', '/api/join', '/api/signup', '/api/integrations/google/callback'):
+        if not request.path.startswith('/api/') or request.path in ('/api/login', '/api/join', '/api/signup', '/api/waitlist', '/api/password/forgot', '/api/password/reset', '/api/email/verify', '/api/integrations/google/callback'):
             return
         with store.connect() as db:
             row = db.execute('SELECT u.*,s.csrf FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token=? AND s.expires>?', (digest(request.cookies.get('wm_session', '')), time.time())).fetchone()
@@ -863,6 +863,8 @@ def create_app(config=None, start_worker=True, provider=provider_request, transc
     register_calls(app,store,accessible,data,uid,digest,throttle,field)
     initialize_owners(store)
     register_accounts(app,store,data,field,email_field,throttle,uid,digest,login_response)
+    from growth import register_growth
+    register_growth(app,store,accessible,data,field,email_field,throttle,uid,digest,admin,start_worker)
     from workspace import register_workspace
     register_workspace(app, store, drive, accessible, admin, data, uid, digest, throttle, field)
 

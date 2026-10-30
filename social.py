@@ -7,7 +7,7 @@ import hmac
 import hashlib
 import urllib.request
 from urllib.parse import quote
-from flask import abort, g, jsonify, request, send_file
+from flask import abort, g, jsonify, request, send_file, current_app
 from PIL import Image, ImageOps
 
 SCHEMA='''
@@ -40,6 +40,8 @@ def notify_room_join(db,room_id,actor_id,actor_name,kind,uid,call_id=None):
         if prior:continue
         nid=uid();db.execute('INSERT INTO notifications(id,user_id,room_id,title,created) VALUES(?,?,?,?,?)',(nid,member['user_id'],room_id,title,time.time()))
         db.execute('INSERT INTO notification_events VALUES(?,?,?,?)',(nid,actor_id,kind,call_id))
+        mailer=current_app.extensions.get('mailer')
+        if mailer:mailer.notification(db,member['user_id'],nid,title,room_id)
 
 def register_social(app,store,accessible,data,uid,digest,throttle,field):
     with store.connect() as db:db.executescript(SCHEMA)

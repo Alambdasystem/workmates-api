@@ -188,3 +188,18 @@ Validation boundary: automated member/owner isolation, saved audio bytes and Ran
 - Closed-app/background push delivery, SMS and actual phone calls are not enabled. Browser throttling, notification permissions and phone settings can limit alerts. These limits are stated in settings.
 - Regression fix: frontend proxy now allowlists and forwards q for call-files and kind/asset_id for call-item. Unknown or duplicate query keys remain rejected; the earlier frontend block on voice file lookup is fixed.
 - TDD: new member/call alerts absent, alert UI missing, worker returned 404 and allowed file-query requests returned 400 before implementation. Recipient/dedup, fresh-popup, worker and query forwarding tests passed. Actual phone notification/sound delivery remains unverified on-device.
+
+## S19 Mobile composer call action
+- The approved Call with REIGN action is pinned above the message input, displays actual group member names, and starts the shared call plus host REIGN voice connection. Other members receive join alerts and explicitly join/allow their microphone.
+- Secondary Images, Voice note, Dictate and Send controls remain thumb-sized at phone widths. Private conversations do not expose a group-call action. Dark human-message contrast is corrected.
+- Composer presence/name summary and host/participant call-entry regression tests passed. Real two-device audio remains separate acceptance.
+
+## S20 Customer entry, signup sheet and transactional mail
+- Anonymous home visitors see a responsive early-access landing page. /waiting-list always opens it; /app opens the member application and /signup opens account creation. Signed-in home visitors retain their dashboard. Existing invite, file, room, Drive and recovery fragments route into the member app.
+- Waiting-list records capture name/email/team/interest plus explicit contact consent, persist once per email, and are visible/exportable as a formula-safe CSV only to administrators. Signup confirmation and administrator lead emails are queued; no lost lead if email fails.
+- New self-service accounts receive an email verification link. Password reset requests use uniform responses, rate limits, hashed 30-minute single-use tokens and no automatic login. A successful reset revokes existing sessions and queues a security notice.
+- Optional notification/reminder email requires verified ownership and explicit opt-in; disabling it cancels queued optional notification mail. Password recovery and security mail remain transactional.
+- Mail payloads are encrypted in a persistent outbox, retry with backoff, expire sensitive links, and are cleared after submission/final failure. The encryption key is a private runtime file beside the persistent database, never source-controlled. Administrator delivery status returns metadata only, never tokens or mail bodies.
+- Personal reminders save a due time and create a durable notification when due. Verified, opted-in users also receive email. Browser/phone popup settings remain separate.
+- cPanel relay restored after the configured file was found missing. A signed real test email to the administrator received HTTP 202 accepted from the mail server. Inbox delivery is checked separately; accepted is not represented as inbox receipt.
+- Tests cover landing/app separation, waitlist deduplication/admin scope, uniform recovery responses, token replay/expiry, session revocation, encrypted outbox clearing, verification/opt-in, and reminder date validation. An initial growth fixture needed correction before its persistence tests ran; the waitlist insert then failed and was fixed. No strict red-before-code claim is made for that fixture repair.
