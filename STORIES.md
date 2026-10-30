@@ -155,3 +155,12 @@ Validation boundary: automated member/owner isolation, saved audio bytes and Ran
 - Creating a project saves the room and its brief, opens the chat, optionally enables REIGN, then opens the existing invitation confirmation form. Automatic contact recommendations and dashboard attachment upload remain pending.
 - Home is available in the navigation drawer. Rightward swipes starting within 32px of the mobile left edge open it; leftward swipes close it. Vertical scrolling, short gestures and form/media interactions are protected.
 - Unit tests were written red before implementation, then passed for summaries, sorting/filtering, project title limits, project create/open/settings/invite flow and swipe intent. Signed-in mobile visual acceptance remains pending.
+
+## S15 Dashboard shortcuts and meeting screen presentation
+- Home includes Alambda.com, AgentSpace Mail (https://alambda.systems/agentspace/) and https://api.alambda.com/feed/ as external quick-access links with safe new-tab handling.
+- Active group participants can choose a screen, window or tab through their browser's display picker. No camera or system audio is captured. Unsupported browsers show a clear fallback; mobile members can still view the presentation.
+- One presenter holds the shared screen stage. Other members see that presenter's video, with a connecting state while media negotiates. The source participant and stream must match the server's room-scoped presentation state.
+- Stop sharing or the browser's stop control releases video tracks/senders and returns to synchronized saved documents. Leaving releases capture; tab switching keeps the group meeting connected.
+- Meeting controls include People +, Share screen / Stop sharing, full-screen stage, mute and Leave. The participant strip identifies the group; REIGN stays alongside the stage.
+- REIGN does not receive live screen video in this release. Her synchronized narration uses saved documents and images only. Actual two-device display capture and audio remain device acceptance items.
+- TDD: presenter endpoint initially 404 and screen-owner function missing; then permission, exclusive-presenter, source validation, picker/cleanup and destination tests passed.

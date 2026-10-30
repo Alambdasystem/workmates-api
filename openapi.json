@@ -3818,6 +3818,53 @@
           }
         }
       }
+    },
+    "/api/rooms/{room_id}/calls/{call_id}/presentation": {
+      "post": {
+        "operationId": "setCallPresentation",
+        "summary": "Claim or release the call screen presentation",
+        "description": "Any active room participant may present. One presenter at a time. Only the presenter releases their own screen.",
+        "parameters": [
+          {
+            "name": "room_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "call_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "403": {
+            "description": "Not permitted"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
     }
   },
   "components": {

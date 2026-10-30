@@ -6,6 +6,7 @@ from pptx import Presentation
 from solo import realtime_offer
 
 SCHEMA='''
+CREATE TABLE IF NOT EXISTS call_presentations(call_id TEXT PRIMARY KEY REFERENCES room_calls(id),participant_id TEXT NOT NULL,stream_id TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS room_calls(id TEXT PRIMARY KEY,room_id TEXT NOT NULL REFERENCES rooms(id),host_user TEXT NOT NULL REFERENCES users(id),created REAL NOT NULL,ended REAL,stage TEXT NOT NULL,version INTEGER NOT NULL DEFAULT 0,recording INTEGER NOT NULL DEFAULT 0);
 CREATE UNIQUE INDEX IF NOT EXISTS one_active_room_call ON room_calls(room_id) WHERE ended IS NULL;
 CREATE TABLE IF NOT EXISTS call_participants(id TEXT PRIMARY KEY,call_id TEXT NOT NULL REFERENCES room_calls(id),user_id TEXT NOT NULL REFERENCES users(id),seen REAL NOT NULL,consent INTEGER NOT NULL DEFAULT 0,left_at REAL);
@@ -77,6 +78,8 @@ def register_calls(app,store,accessible,data,uid,digest,throttle,field):
         result=dict(row);result['stage']=json.loads(result['stage'])
         result['participants']=[dict(p) for p in db.execute('SELECT p.id,p.user_id,u.name,p.consent FROM call_participants p JOIN users u ON u.id=p.user_id WHERE p.call_id=? AND p.left_at IS NULL AND p.seen>?',(row['id'],time.time()-45))]
         result['events']=[dict(e,payload=json.loads(e['payload'])) for e in db.execute('SELECT id,kind,payload,created FROM call_events WHERE call_id=? ORDER BY id DESC LIMIT 100',(row['id'],)).fetchall()[::-1]]
+        presenter=db.execute('SELECT s.participant_id,s.stream_id,u.name FROM call_presentations s JOIN call_participants p ON p.id=s.participant_id JOIN users u ON u.id=p.user_id WHERE s.call_id=? AND p.left_at IS NULL AND p.seen>?',(row['id'],time.time()-45)).fetchone()
+        result['presentation']=dict(presenter) if presenter else None
         result['recording']=bool(result['recording'])
         try:result['ice_servers']=json.loads(os.environ.get('CALL_ICE_SERVERS_JSON','[]'))
         except (ValueError,TypeError):result['ice_servers']=[]
@@ -140,6 +143,23 @@ def register_calls(app,store,accessible,data,uid,digest,throttle,field):
             db.execute('DELETE FROM call_signals WHERE created<?',(time.time()-120,))
             signals=[dict(r,payload=json.loads(r['payload'])) for r in db.execute('SELECT id,source,payload FROM call_signals WHERE call_id=? AND target=? AND id>? ORDER BY id LIMIT 100',(call_id,pid,after))]
             result=state(db,row);result['signals']=signals
+        return jsonify(result)
+
+
+    @app.post('/api/rooms/<room_id>/calls/<call_id>/presentation')
+    def presentation(room_id,call_id):
+        d=data();pid=field(d,'participant_id',100)
+        if type(d.get('sharing')) is not bool:abort(400,'Sharing must be true or false.')
+        with store.connect() as db:
+            db.execute('BEGIN IMMEDIATE');row=call(db,room_id,call_id);participant(db,call_id,pid)
+            active=state(db,row)['presentation']
+            if d['sharing']:
+                sid=field(d,'stream_id',100)
+                if active and active['participant_id']!=pid:abort(409,'Someone is already presenting. Ask them to stop sharing first.')
+                db.execute('INSERT OR REPLACE INTO call_presentations VALUES(?,?,?)',(call_id,pid,sid))
+            else:
+                db.execute('DELETE FROM call_presentations WHERE call_id=? AND participant_id=?',(call_id,pid))
+            result=state(db,row)
         return jsonify(result)
 
     @app.post('/api/rooms/<room_id>/calls/<call_id>/signals')
