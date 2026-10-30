@@ -55,3 +55,17 @@ class CallWorkspaceTests(unittest.TestCase):
   self.assertEqual(self.m.post(url+'/presentation',json={'participant_id':guest,'sharing':False},headers=self.mh).status_code,200)
   self.assertIsNone(self.a.get(url).json['presentation'])
   self.assertEqual(self.app.test_client().get(url).status_code,401)
+ def test_call_file_context_is_scoped_to_room(self):
+  did=self.a.post(self.p+'/documents',json={'title':'Call brief','body':'Discuss this budget.'},headers=self.h).json['id']
+  url=self.p+'/call-item?kind=document&asset_id='+did
+  self.assertEqual(self.m.get(url).json['pages'][0]['blocks'][0],'Discuss this budget.')
+  other=self.a.post('/api/rooms',json={'name':'Other','description':''},headers=self.h).json['id']
+  self.assertEqual(self.a.get('/api/rooms/'+other+'/call-item?kind=document&asset_id='+did).status_code,404)
+  self.assertEqual(self.app.test_client().get(url).status_code,401)
+ def test_voice_file_search_finds_real_saved_work(self):
+  did=self.a.post(self.p+'/documents',json={'title':'Launch brief','body':'Discuss launch.'},headers=self.h).json['id']
+  response=self.m.get('/api/call-files?q=launch')
+  self.assertEqual(response.status_code,200);self.assertTrue(any(x['asset_id']==did for x in response.json['items']))
+  other=self.a.post('/api/rooms',json={'name':'Secret','description':''},headers=self.h).json['id']
+  secret=self.a.post('/api/rooms/'+other+'/documents',json={'title':'Launch secret','body':'Private'},headers=self.h).json['id']
+  self.assertFalse(any(x['asset_id']==secret for x in self.m.get('/api/call-files?q=launch').json['items']))
