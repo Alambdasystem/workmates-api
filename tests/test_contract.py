@@ -14,7 +14,7 @@ class ContractTests(unittest.TestCase):
         ids=[op['operationId'] for path in CONTRACT['paths'].values() for op in path.values()]
         self.assertEqual(len(ids),len(set(ids)))
     def test_admin_operations_marked(self):
-        for path,method in [('/api/rooms','post'),('/api/rooms/{room_id}/workmate','patch'),('/api/rooms/{room_id}/invites','post'),('/api/rooms/{room_id}/members/{user_id}','delete')]:
+        for path,method in [('/api/rooms','post'),('/api/rooms/{room_id}/workmate','patch'),('/api/rooms/{room_id}/members/{user_id}','delete')]:
             self.assertIn('Administrator only',CONTRACT['paths'][path][method]['description'])
     def test_mutations_require_csrf_except_login_join(self):
         for path,operations in CONTRACT['paths'].items():

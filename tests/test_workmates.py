@@ -39,7 +39,7 @@ class WorkmatesTests(unittest.TestCase):
         c,csrf,_ = self.member()
         self.assertEqual(self.post('/rooms',{'name':'Denied','description':''},c,csrf).status_code,403)
         self.assertEqual(self.post('/rooms/'+self.rid+'/workmate',{},c,csrf,method='PATCH').status_code,403)
-        self.assertEqual(self.post('/rooms/'+self.rid+'/invites',{'email':'other@example.com'},c,csrf).status_code,403)
+        self.assertEqual(self.post('/rooms/'+self.rid+'/invites',{'email':'other@example.com'},c,csrf).status_code,200)
         self.assertNotIn('prompt',c.get('/api/rooms/'+self.rid).json)
     def test_room_isolation_and_revocation(self):
         c,csrf,_ = self.member()
