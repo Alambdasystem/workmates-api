@@ -47,3 +47,9 @@ S19/S20 release
 - Public customer landing was absent; public/member route separation now passes.
 - Initial growth test fixture lacked its shared member helper and was corrected. Persistence then failed on the waiting-list insert column count; corrected and reran green. This is recorded as fixture/implementation repair, not a fabricated red-before-code test sequence.
 - Recovery security tests validate single use, expiry and session revocation; email tests validate ownership opt-in and encrypted outbox storage/clearing. Mail server acceptance and actual inbox delivery remain distinct.
+
+S21
+- Five new behavior tests ran red for absent pins, catch-up, action acceptance, feedback and admin endpoints before implementing enhancements.py.
+- Green for shared/scoped real pins, personal explicit read cursors, private feedback and owner-only action transitions.
+- Added regression checks for pause enforcement with plain chat preserved and reporter/admin screenshot boundaries. The initial pause fixture omitted required settings; corrected the fixture to assert successful configuration before checking enforcement.
+- Voice lifecycle test covers releasing microphone streams that arrive after timeout and using gathered local SDP; updated the WebRTC mock to expose its actual local description. Physical audio and live-browser evidence remain separate gates.

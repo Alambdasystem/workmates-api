@@ -4278,6 +4278,284 @@
           }
         }
       }
+    },
+    "/api/rooms/{room_id}/pins": {
+      "get": {
+        "operationId": "get__api_rooms_room_id_pins",
+        "description": "Authenticated and scoped to the current member or room.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      },
+      "post": {
+        "operationId": "post__api_rooms_room_id_pins",
+        "description": "Authenticated and scoped to the current member or room.",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/rooms/{room_id}/pins/{kind}/{asset_id}": {
+      "delete": {
+        "operationId": "delete__api_rooms_room_id_pins_kind_asset_id",
+        "description": "Authenticated and scoped to the current member or room.",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/rooms/{room_id}/catch-up": {
+      "get": {
+        "operationId": "get__api_rooms_room_id_catch_up",
+        "description": "Authenticated and scoped to the current member or room.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/rooms/{room_id}/catch-up/read": {
+      "post": {
+        "operationId": "post__api_rooms_room_id_catch_up_read",
+        "description": "Authenticated and scoped to the current member or room.",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/rooms/{room_id}/action-items": {
+      "get": {
+        "operationId": "get__api_rooms_room_id_action_items",
+        "description": "Authenticated and scoped to the current member or room.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      },
+      "post": {
+        "operationId": "post__api_rooms_room_id_action_items",
+        "description": "Authenticated and scoped to the current member or room.",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/rooms/{room_id}/action-items/{task_id}": {
+      "patch": {
+        "operationId": "patch__api_rooms_room_id_action_items_task_id",
+        "description": "Authenticated and scoped to the current member or room.",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/feedback": {
+      "post": {
+        "operationId": "post__api_feedback",
+        "description": "Authenticated and scoped to the current member or room.",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/feedback/{feedback_id}/image": {
+      "put": {
+        "operationId": "put__api_feedback_feedback_id_image",
+        "description": "Authenticated and scoped to the current member or room.",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/admin/feedback": {
+      "get": {
+        "operationId": "get__api_admin_feedback",
+        "description": "Platform administrator only.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/admin/feedback/{feedback_id}": {
+      "patch": {
+        "operationId": "patch__api_admin_feedback_feedback_id",
+        "description": "Platform administrator only.",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/admin/feedback/{feedback_id}/image": {
+      "get": {
+        "operationId": "get__api_admin_feedback_feedback_id_image",
+        "description": "Platform administrator only.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/diagnostics": {
+      "post": {
+        "operationId": "post__api_diagnostics",
+        "description": "Authenticated and scoped to the current member or room.",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/admin/limits": {
+      "post": {
+        "operationId": "post__api_admin_limits",
+        "description": "Platform administrator only.",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/admin/operations": {
+      "get": {
+        "operationId": "get__api_admin_operations",
+        "description": "Platform administrator only.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -4370,7 +4648,8 @@
                 "search_documents",
                 "update_document",
                 "update_task",
-                "web_search"
+                "web_search",
+                "propose_action_item"
               ]
             }
           },
@@ -4446,7 +4725,8 @@
                 "search_documents",
                 "update_document",
                 "update_task",
-                "web_search"
+                "web_search",
+                "propose_action_item"
               ]
             }
           },
@@ -4763,7 +5043,8 @@
                 "search_documents",
                 "update_document",
                 "update_task",
-                "web_search"
+                "web_search",
+                "propose_action_item"
               ]
             }
           },
