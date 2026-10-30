@@ -59,6 +59,37 @@ class PreviewTests(unittest.TestCase):
         self.assertEqual(r['kind'],'text');self.assertEqual(len(r['body']),20000)
         f=self.save_file('unknown.bin',b'\x00\xffbinary')
         self.assertEqual(self.c.get(self.p+'/files/'+f['id']+'/preview').json['kind'],'file')
+    def test_generated_spreadsheet_and_images_are_shared_with_group_members(self):
+        import io
+        import xlsxwriter
+        out=io.BytesIO()
+        book=xlsxwriter.Workbook(out,{'in_memory':True});sheet=book.add_worksheet('Team budget')
+        sheet.write_row(0,0,['Owner','Amount']);sheet.write_row(1,0,['Mayer',125]);book.close()
+        file=self.save_file('Budget.xlsx',out.getvalue())
+        image=self.save_file('Team.svg',b'<svg xmlns="http://www.w3.org/2000/svg"><text>Shared</text></svg>')
+        doc=self.c.post(self.p+'/documents',json={'title':'Shared plan','body':'Original'},headers=self.h).json
+        for name in ('Mayer','Teammate'):
+            email=name.lower()+'@example.com'
+            invite=self.c.post(self.p+'/invites',json={'email':email},headers=self.h).json
+            member=self.app.test_client()
+            self.assertEqual(member.post('/api/join',json={'email':email,'name':name,'password':'long-member-password','token':invite['token']}).status_code,200)
+            shared=member.get(self.p).json
+            self.assertEqual({f['id'] for f in shared['files']},{file['id'],image['id']})
+            self.assertEqual(member.get(self.p+'/files/'+file['id']).data,out.getvalue())
+            preview=member.get(self.p+'/files/'+file['id']+'/preview').json
+            self.assertEqual(preview['kind'],'spreadsheet')
+            self.assertIn(['Mayer','125'],json.loads(preview['body'])['sheets'][0]['rows'])
+            self.assertEqual(member.get(self.p+'/files/'+image['id']+'/preview').status_code,200)
+            h={'X-CSRF-Token':member.get('/api/me').json['csrf']}
+            current=member.get(self.p+'/documents/'+doc['id']).json
+            edit=member.patch(self.p+'/documents/'+doc['id'],json={'title':'Shared plan','body':name+' edited','version':current['version']},headers=h)
+            self.assertEqual(edit.status_code,200)
+            self.assertEqual(self.c.get(self.p+'/documents/'+doc['id']).json['body'],name+' edited')
+        other=self.c.post('/api/rooms',json={'name':'Private','description':''},headers=self.h).json['id']
+        self.assertEqual(member.get('/api/rooms/'+other).status_code,404)
+        self.assertEqual(member.get('/api/rooms/'+other+'/files/'+file['id']).status_code,404)
+        self.assertEqual(self.app.test_client().get(self.p+'/files/'+file['id']).status_code,401)
+
     def test_running_job_is_not_lost_behind_recent_team_chat(self):
         for n in range(10):self.c.post(self.p+'/messages',json={'content':'Team update','request_id':str(n)},headers=self.h)
         room=self.c.get(self.p).json
