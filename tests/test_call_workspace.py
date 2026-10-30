@@ -44,3 +44,14 @@ class CallWorkspaceTests(unittest.TestCase):
   self.assertEqual(summary['last_message']['content'],'Latest group update')
   self.assertGreater(summary['last_activity'],0)
   self.assertGreaterEqual(summary['member_count'],2)
+ def test_only_one_presenter_and_room_scope(self):
+  call=self.start();url=self.p+'/calls/'+call['id'];host=call['participant_id']
+  guest=self.m.post(url+'/join',json={},headers=self.mh).json['participant_id']
+  response=self.m.post(url+'/presentation',json={'participant_id':guest,'sharing':True,'stream_id':'screen-guest'},headers=self.mh)
+  self.assertEqual(response.status_code,200)
+  self.assertEqual(self.a.get(url).json['presentation']['participant_id'],guest)
+  self.assertEqual(self.a.post(url+'/presentation',json={'participant_id':host,'sharing':True,'stream_id':'screen-host'},headers=self.h).status_code,409)
+  self.assertEqual(self.a.post(url+'/presentation',json={'participant_id':guest,'sharing':False},headers=self.h).status_code,404)
+  self.assertEqual(self.m.post(url+'/presentation',json={'participant_id':guest,'sharing':False},headers=self.mh).status_code,200)
+  self.assertIsNone(self.a.get(url).json['presentation'])
+  self.assertEqual(self.app.test_client().get(url).status_code,401)
