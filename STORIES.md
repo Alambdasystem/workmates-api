@@ -87,3 +87,18 @@ Example end-to-end scenarios:
 2. Given ten saved images, select them in order, choose Word, send the request, then open a DOCX with all ten images and captions.
 3. Given those images, choose Video, request fade transitions, then preview and download a playable MP4.
 4. Given a connected group Drive folder, choose Upload to Drive on an image, select the destination, and see a confirmed Drive-copy link while the chat original remains available.
+
+## S7 Mobile chat and shared group files
+As a group member, I want a full-height mobile conversation and easy access to everyone's saved work.
+
+Acceptance criteria:
+- At widths up to 850px, the header becomes one compact toolbar; groups, admin actions and the shared work panel open in a left hamburger drawer.
+- The drawer closes with its close control, backdrop, Escape or group selection, and traps keyboard focus while open.
+- Only messages scroll. The composer remains at the viewport bottom, follows mobile keyboard viewport changes and respects device safe areas.
+- A Latest messages control appears when scrolled away from the bottom and jumps to the newest messages without forcing readers down on each refresh.
+- Files & work opens the shared document/file list for any member, and generated attachments appear next to the assistant response as well as the originating request.
+- Every invited member can list, preview and download the same saved spreadsheet/image bytes. Canvas edits are visible to other members and use existing version conflict checks.
+- XLSX previews show bounded cell values for up to ten sheets, 100 rows and 26 columns without executing formulas, macros or external links. Original downloads remain intact.
+- Unauthenticated and nonmember requests remain blocked.
+
+Verification: member-session sharing/download/preview/Canvas checks and mobile navigation/viewport behavior checks pass automatically. Authenticated production mobile browser acceptance remains pending; these checks do not imply simultaneous cell editing of binary XLSX files. Edit downloaded spreadsheets in a spreadsheet application; shared Canvas documents support versioned edits in Workmates.

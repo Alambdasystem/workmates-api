@@ -1,4 +1,8 @@
 """Safe, bounded previews; originals remain separate downloadable files."""
+import io
+import json
+import zipfile
+import posixpath
 import re
 import textwrap
 from pathlib import Path
@@ -56,6 +60,47 @@ def sanitize_svg(content):
     return ET.tostring(root, encoding='utf-8')
 
 
+def spreadsheet_preview(content):
+    """Read bounded OOXML cell values without executing formulas or external links."""
+    ns={'s':'http://schemas.openxmlformats.org/spreadsheetml/2006/main'}
+    with zipfile.ZipFile(io.BytesIO(content)) as z:
+        if len(z.infolist())>2000 or sum(i.file_size for i in z.infolist())>32*1024*1024:
+            raise ValueError('Spreadsheet is too large to preview.')
+        def xml(name):
+            raw=z.read(name)
+            if b'<!DOCTYPE' in raw.upper() or b'<!ENTITY' in raw.upper():raise ValueError('Unsupported XML.')
+            return ET.fromstring(raw)
+        shared=[]
+        if 'xl/sharedStrings.xml' in z.namelist():
+            shared=[''.join(n.itertext())[:1000] for n in xml('xl/sharedStrings.xml').findall('s:si',ns)]
+        relations={n.get('Id'):n.get('Target','') for n in xml('xl/_rels/workbook.xml.rels') if n.get('TargetMode')!='External'}
+        sheets=[]
+        for sheet in xml('xl/workbook.xml').findall('s:sheets/s:sheet',ns)[:10]:
+            rid=sheet.get('{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id')
+            target=relations.get(rid,'')
+            path=posixpath.normpath(target.lstrip('/') if target.startswith('/') else 'xl/'+target)
+            if not path.startswith('xl/worksheets/'):continue
+            rows=[]
+            for row in xml(path).findall('s:sheetData/s:row',ns)[:100]:
+                cells=['']*26
+                for cell in list(row)[:200]:
+                    ref=re.match(r'([A-Z]+)',cell.get('r',''))
+                    if not ref:continue
+                    col=0
+                    for letter in ref[1]:col=col*26+ord(letter)-64
+                    if not 1<=col<=26:continue
+                    value=cell.findtext('s:v','',ns)
+                    if cell.get('t')=='s':
+                        try:value=shared[int(value)]
+                        except (ValueError,IndexError):value=''
+                    elif cell.get('t')=='inlineStr':value=''.join(cell.find('s:is',ns).itertext()) if cell.find('s:is',ns) is not None else ''
+                    cells[col-1]=value[:1000]
+                rows.append(cells)
+            width=max((max((i+1 for i,v in enumerate(r) if v),default=1) for r in rows),default=1)
+            sheets.append({'name':sheet.get('name','Sheet')[:100],'rows':[r[:width] for r in rows]})
+        return json.dumps({'sheets':sheets,'note':'Preview: first 10 sheets, 100 rows and 26 columns. Formula cells show saved values. Download the original to edit in your spreadsheet app.'})
+
+
 def file_preview(filename, content):
     for signature, mime in ((b'\x89PNG\r\n\x1a\n', 'image/png'), (b'\xff\xd8\xff', 'image/jpeg'), (b'GIF87a', 'image/gif'), (b'GIF89a', 'image/gif')):
         if content.startswith(signature):
@@ -63,6 +108,9 @@ def file_preview(filename, content):
     if content.startswith(b'RIFF') and content[8:12] == b'WEBP':
         return 'image', 'image/webp', content
     suffix = Path(filename).suffix.lower()
+    if suffix == '.xlsx':
+        try:return 'spreadsheet', 'application/json', spreadsheet_preview(content)
+        except (ValueError,KeyError,zipfile.BadZipFile,ET.ParseError):raise ValueError('Spreadsheet preview unavailable.') from None
     if suffix == '.svg':
         return 'image', 'image/svg+xml', sanitize_svg(content)
     if suffix in ('.docx', '.pdf'):
