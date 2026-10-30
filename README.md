@@ -80,9 +80,9 @@ Turning a workmate off or changing its settings cancels pending work. Tools chec
 
 `openapi.json` describes every backend route. `examples/client.py` provides a direct API client using cookies and CSRF, with a read-only group-listing CLI. Direct browser integrations must use the same origin; the frontend service provides the proxy for this.
 
-- Only the admin creates groups, manages invitations/members, and changes workmate settings.
-- Members see only their groups. The admin sees every group.
-- Invitations are email-bound, single-use, and expire in seven days. The app returns invitation links for manual sharing; it does not send emails.
+- Only the admin creates shared groups, removes members, and changes shared workmate settings. Group members may create invitations.
+- Members see their groups. Admins see shared groups; private one-on-one rooms remain visible only to their owner.
+- Email invitations are email-bound; phone-share links are bearer invitations. Both are single-use and expire in seven days. The configured signed relay submits invitation emails, and existing recipients also get in-app notifications.
 - Login uses password hashes and expiring HttpOnly/Secure/SameSite cookies. Authenticated writes require `X-CSRF-Token` from `/api/me`.
 - Send messages with a stable `request_id`; reuse it only for retries of the same message. Duplicate sends are not reprocessed.
 - `/api/rooms/{room_id}` returns recent messages, jobs, documents, activity, members, and tasks. Polling is used instead of token streaming.
@@ -144,3 +144,9 @@ Native tools create real DOCX files with up to ten images, PPTX files with image
 Existing image/document/code-enabled groups receive the new composition tools once, preserving workmate on/off state and group membership. Image generation permissions remain separate; native batches also require image_generation. Admins can turn off individual tools afterward. Credentials and original assets are not placed in repositories.
 
 Verification: `python -m unittest discover -s tests -q` includes model payload context, durable selections, future/cross-group denial, exact normal-size DOCX/PPTX image bytes, original-preserving large-set optimization, a ten-image generation-fixture to Word/PPTX/MP4 workflow, actual decoded MP4 timing/transition frames, cancel handling, and Drive byte/receipt/error checks. OpenAI image generation and Google HTTP transports are simulated in these tests; outputs and FFmpeg decoding are real. Authenticated browser acceptance and live Google consent are separate gates and are not represented as passed by API tests.
+
+Voice notes, invitations and private voice
+----------------------------------------
+`social.py` stores group voice notes and per-user notifications/themes. Member-created email invites bind to their email; phone-share links are bearer invitations and must be sent only to the intended recipient. Email delivery uses `MAIL_RELAY_URL` and `MAIL_RELAY_SECRET` for the invitation-only HMAC relay in `mail-relay.php`, whose secret is stored outside the web root in a 0700 directory. A submitted response indicates mail-server acceptance, not inbox arrival. No contact-book sync or unattended SMS occurs.
+
+`solo.py` creates owner-only rooms and brokers OpenAI WebRTC offers with the server's existing API key. `REALTIME_MODEL` defaults to `gpt-realtime-2.1`; normal text chat retains `OPENAI_MODEL`. Calls end locally after fifteen minutes or when the app backgrounds. Live transcripts persist privately; raw live audio does not. The live voice transport has no action tools; normal private text chat retains enabled tools. Background images are private, bounded raster uploads that are re-encoded to strip metadata.

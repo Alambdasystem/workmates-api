@@ -102,3 +102,26 @@ Acceptance criteria:
 - Unauthenticated and nonmember requests remain blocked.
 
 Verification: member-session sharing/download/preview/Canvas checks and mobile navigation/viewport behavior checks pass automatically. Authenticated production mobile browser acceptance remains pending; these checks do not imply simultaneous cell editing of binary XLSX files. Edit downloaded spreadsheets in a spreadsheet application; shared Canvas documents support versioned edits in Workmates.
+
+## S8 Voice notes, notifications and contact invites
+- Any group member may record up to three minutes / 6 MB, listen locally, send, retry safely or discard. Recording never auto-sends. Group members can play/save durable notes; other rooms and signed-out requests cannot fetch them.
+- Email invitations remain bound to the intended email and single use; phone-share invitations are single-use bearer links with a seven-day expiry. Any group member can invite; private solo rooms cannot.
+- Existing recipients get a notification bell and an invitation prompt on login. Accepting an invite requires the matching signed-in recipient. Reading/accepting another user's notification is blocked.
+- Email status distinguishes accepted by the relay, failure and missing configuration. No claim of inbox delivery follows from relay acceptance alone.
+- Contact picking requires a user gesture and supported browser. Only chosen contact details enter the form; full address books are never uploaded. SMS opens the user's messaging app with the invite; it is not unattended SMS delivery.
+
+## S9 Personal backgrounds and Agent Drive
+- Users choose Clean, Cosmic, Aurora or Sunset backgrounds, or upload PNG/JPEG/WebP up to 6 MB / 20 megapixels. Images are resized and re-encoded with metadata removed. Strength is adjustable from 0 to 45%.
+- Preferences persist server-side per user; uploaded backgrounds are private to that user and may be deleted.
+- Agent Drive combines this group's saved images, generated files and versioned Canvas documents with its connected Google Drive mounts. Filters, previews, downloads and Canvas editing remain group scoped. Administrators can connect more folders; other members can browse connected folders.
+
+## S10 Private room and live voice
+- Talk privately creates/reopens an owner-only room. Even other workspace admins cannot list or open it. Group transcripts are not copied into the private room. Its own saved history persists between visits.
+- Private UI follows the supplied dark reference: circular floating controls, smoky eye, soft bubbles, fading live captions and a bottom text composer.
+- Call REIGN opens immediately with a phone-style ringing state and starts voice after the private room is ready; canceling aborts the pending connection. Emojis can be inserted while typing.
+- Starting voice requests microphone permission and establishes an OpenAI WebRTC speech-to-speech session. Voice activity detection supports hands-free turns/interruptions. Mute disables microphone tracks; End, navigation, backgrounding and a fifteen-minute call timer close media resources.
+- The server signs the voice handshake; the permanent API key never reaches the browser. Text chat uses the configured GPT-6 Astra model; live voice uses the dedicated configurable REALTIME_MODEL (default gpt-realtime-2.1).
+- Live user/assistant transcript turns are saved only in the private room and deduplicated by event ID. Typed messages may be sent during the live session. If voice cannot connect, private text remains available.
+- Live audio itself is not recorded. Live voice has no document/research tools; end the call and use the private text composer for those actions.
+
+Validation boundary: automated member/owner isolation, saved audio bytes and Range playback, transcript deduplication, notification acceptance, themes and proxy checks run with fake OpenAI transports. Actual microphone playback, recipient inbox arrival and native contact/SMS handoff require device acceptance. These are not marked passed by automated tests.

@@ -15,12 +15,14 @@ import urllib.error
 import urllib.request
 from contextlib import contextmanager
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import urlparse, quote
 
 from flask import Flask, abort, g, jsonify, request, send_file, redirect
 from werkzeug.exceptions import HTTPException
 from werkzeug.security import check_password_hash, generate_password_hash
 from documents import export_document, import_document, MIMES
+from solo import register_solo
+from social import register_social, deliver_invite
 from drive import Drive
 from media_tools import TOOLS as MEDIA_TOOLS, execute_media, assets_for, catalog, visual_parts
 
@@ -359,7 +361,7 @@ class Agent:
             elif content[4:8]==b'ftyp':mime='video/mp4'
         with self.store.connect() as db:
             db.execute('BEGIN IMMEDIATE'); room = self.current(db, job)
-            total = db.execute('SELECT coalesce(sum(length(content)),0) FROM artifacts WHERE room_id=?', (room['id'],)).fetchone()[0]
+            total = db.execute('SELECT coalesce(sum(length(content)),0) FROM artifacts WHERE room_id=?', (room['id'],)).fetchone()[0] + db.execute('SELECT coalesce(sum(length(content)),0) FROM voice_notes WHERE room_id=?',(room['id'],)).fetchone()[0]
             if total + len(content) > 128 * 1024 * 1024:
                 raise RuntimeError('This group has reached its 128 MB generated file limit.')
             aid = uid(); filename = re.sub(r'[\x00-\x1f"\\]','-',Path(filename).name)[:180] or 'Generated file'
@@ -520,6 +522,8 @@ def create_app(config=None, start_worker=True, provider=provider_request, transc
 
     def accessible(db, room_id):
         room = db.execute('SELECT * FROM rooms WHERE id=?', (room_id,)).fetchone()
+        private = db.execute('SELECT owner_id FROM solo_rooms WHERE room_id=?',(room_id,)).fetchone()
+        if private and private['owner_id'] != g.user['id']:abort(404,'Group not found.')
         member = db.execute('SELECT 1 FROM members WHERE room_id=? AND user_id=?', (room_id, g.user['id'])).fetchone()
         if not room or (g.user['role'] != 'admin' and not member):
             abort(404, 'Group not found.')
@@ -541,6 +545,7 @@ def create_app(config=None, start_worker=True, provider=provider_request, transc
         value['tools'] = json.loads(value['tools'])
         if g.user['role'] != 'admin':
             value.pop('prompt', None)
+        with store.connect() as db:value['private']=bool(db.execute('SELECT 1 FROM solo_rooms WHERE room_id=?',(row['id'],)).fetchone())
         return value
 
     def login_response(user_id):
@@ -575,7 +580,7 @@ def create_app(config=None, start_worker=True, provider=provider_request, transc
         response.headers['X-Content-Type-Options'] = 'nosniff'
         response.headers['Referrer-Policy'] = 'no-referrer'
         response.headers['X-Frame-Options'] = 'DENY'
-        response.headers.setdefault('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'")
+        response.headers.setdefault('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; media-src 'self' blob:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'")
         if request.path.startswith('/api/'):
             response.headers['Cache-Control'] = 'no-store'
         return response
@@ -619,7 +624,7 @@ def create_app(config=None, start_worker=True, provider=provider_request, transc
         name, password = field(d, 'name', 80), field(d, 'password', 256, 14)
         with store.connect() as db:
             db.execute('BEGIN IMMEDIATE')
-            invite = db.execute('SELECT * FROM invites WHERE token=? AND email=? AND expires>? AND used=0', (digest(token), email, time.time())).fetchone()
+            invite = db.execute("SELECT * FROM invites WHERE token=? AND (email=? OR email='') AND expires>? AND used=0", (digest(token), email, time.time())).fetchone()
             if not invite:
                 abort(400, 'This invitation is invalid or expired.')
             existing = db.execute('SELECT * FROM users WHERE email=?', (email,)).fetchone()
@@ -665,7 +670,7 @@ def create_app(config=None, start_worker=True, provider=provider_request, transc
     @app.get('/api/rooms')
     def rooms():
         with store.connect() as db:
-            rows = db.execute("SELECT * FROM rooms WHERE ?='admin' OR id IN (SELECT room_id FROM members WHERE user_id=?) ORDER BY name", (g.user['role'], g.user['id'])).fetchall()
+            rows = db.execute("SELECT * FROM rooms WHERE (?='admin' OR id IN (SELECT room_id FROM members WHERE user_id=?)) AND (id NOT IN (SELECT room_id FROM solo_rooms) OR id IN (SELECT room_id FROM solo_rooms WHERE owner_id=?)) ORDER BY name", (g.user['role'], g.user['id'],g.user['id'])).fetchall()
         return jsonify([room_dict(r) for r in rows])
 
     @app.post('/api/rooms')
@@ -691,6 +696,7 @@ def create_app(config=None, start_worker=True, provider=provider_request, transc
             room['tasks'] = [dict(r) for r in db.execute('SELECT * FROM tasks WHERE room_id=? ORDER BY created DESC', (room_id,))]
             room['documents'] = [dict(r) for r in db.execute('SELECT * FROM documents WHERE room_id=? ORDER BY created DESC LIMIT 100', (room_id,))]
             room['members'] = [dict(r) for r in db.execute("SELECT id,name,email,role FROM users WHERE role='admin' OR id IN (SELECT user_id FROM members WHERE room_id=?)", (room_id,))]
+            if room.get('private'):room['members']=[u for u in room['members'] if u['id']==g.user['id']]
             room['jobs'] = [dict(r) for r in db.execute("SELECT id,message_id,status,error,progress,created FROM jobs WHERE room_id=? AND (status IN ('queued','running') OR id IN (SELECT id FROM jobs WHERE room_id=? ORDER BY created DESC LIMIT 8)) ORDER BY created DESC", (room_id, room_id))]
             room['actions'] = [dict(r) for r in db.execute('SELECT * FROM actions WHERE room_id=? ORDER BY id DESC LIMIT 40', (room_id,))]
             room['drive_mounts'] = drive.mounts(room_id)
@@ -720,15 +726,27 @@ def create_app(config=None, start_worker=True, provider=provider_request, transc
 
     @app.post('/api/rooms/<room_id>/invites')
     def invite(room_id):
-        admin()
         d = data()
-        email, token = email_field(d), secrets.token_urlsafe(32)
         with store.connect() as db:
-            accessible(db, room_id)
-            db.execute('UPDATE invites SET used=1 WHERE room_id=? AND email=?', (room_id, email))
-            db.execute('INSERT INTO invites VALUES(?,?,?,?,0)', (digest(token), room_id, email, time.time() + 7 * 86400))
-            store.audit(db, room_id, g.user['name'], 'invitation_created', email)
-        return jsonify(token=token, email=email, expires_days=7)
+            target_room=accessible(db,room_id)
+            if db.execute('SELECT 1 FROM solo_rooms WHERE room_id=?',(room_id,)).fetchone():abort(403,'Private conversations cannot invite other members.')
+        throttle('invite:'+g.user['id'],20,3600)
+        channel=d.get('channel','email')
+        if channel not in ('email','phone'):abort(400,'Choose email or phone invitation.')
+        email=email_field(d) if channel=='email' else ''
+        token=secrets.token_urlsafe(32)
+        with store.connect() as db:
+            db.execute('BEGIN IMMEDIATE');accessible(db,room_id)
+            if email:
+                db.execute('UPDATE invites SET used=1 WHERE room_id=? AND email=?',(room_id,email))
+            db.execute('INSERT INTO invites VALUES(?,?,?,?,0)',(digest(token),room_id,email,time.time()+7*86400))
+            existing=db.execute('SELECT id FROM users WHERE email=?',(email,)).fetchone() if email else None
+            if existing:
+                db.execute('INSERT INTO notifications(id,user_id,room_id,title,invite_hash,created) VALUES(?,?,?,?,?,?)',(uid(),existing['id'],room_id,g.user['name']+' invited you to '+target_room['name'],digest(token),time.time()))
+            store.audit(db,room_id,g.user['name'],'invitation_created',email or 'Phone share link')
+        url=app.config['PUBLIC_APP_URL'].rstrip('/')+'/#invite='+quote(token)+'&email='+quote(email)
+        delivery=deliver_invite(app.config,email,g.user['name'],target_room['name'],url) if email else 'share_required'
+        return jsonify(token=token,email=email,expires_days=7,url=url,email_status=delivery,in_app=bool(existing))
 
     @app.delete('/api/rooms/<room_id>/members/<user_id>')
     def remove_member(room_id, user_id):
@@ -819,6 +837,8 @@ def create_app(config=None, start_worker=True, provider=provider_request, transc
             store.audit(db, room_id, g.user['name'], 'task_updated', d['status'])
         return jsonify(ok=True)
 
+    register_social(app,store,accessible,data,uid,digest,throttle,field)
+    register_solo(app,store,accessible,data,uid,digest,throttle,field)
     from workspace import register_workspace
     register_workspace(app, store, drive, accessible, admin, data, uid, digest, throttle, field)
 

@@ -1159,7 +1159,7 @@
       "post": {
         "operationId": "inviteMember",
         "summary": "Create a single-use group invitation",
-        "description": "Administrator only. Returns a token to share privately; no invitation email is sent.",
+        "description": "Group members may create single-use email-bound or phone-share invitations. Email submission status is explicit; existing accounts also get an in-app notification.",
         "responses": {
           "200": {
             "description": "Success",
@@ -2628,6 +2628,462 @@
           },
           "404": {
             "description": "File not in this chat"
+          }
+        }
+      }
+    },
+    "/api/rooms/{room_id}/voice": {
+      "post": {
+        "operationId": "postapiroomsroomidvoice",
+        "summary": "POST /api/rooms/{room_id}/voice",
+        "description": "Authenticated, recipient or group scoped. Voice uploads are capped at 6 MB and three minutes; personal background uploads are private.",
+        "parameters": [
+          {
+            "name": "room_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Sign-in required"
+          },
+          "403": {
+            "description": "Invalid session check"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/rooms/{room_id}/voice/{note_id}": {
+      "get": {
+        "operationId": "getapiroomsroomidvoicenoteid",
+        "summary": "GET /api/rooms/{room_id}/voice/{note_id}",
+        "description": "Authenticated, recipient or group scoped. Voice uploads are capped at 6 MB and three minutes; personal background uploads are private.",
+        "parameters": [
+          {
+            "name": "room_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "note_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Sign-in required"
+          },
+          "403": {
+            "description": "Invalid session check"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/notifications": {
+      "get": {
+        "operationId": "getapinotifications",
+        "summary": "GET /api/notifications",
+        "description": "Authenticated, recipient or group scoped. Voice uploads are capped at 6 MB and three minutes; personal background uploads are private.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Sign-in required"
+          },
+          "403": {
+            "description": "Invalid session check"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/notifications/{notification_id}/read": {
+      "post": {
+        "operationId": "postapinotificationsnotificationidread",
+        "summary": "POST /api/notifications/{notification_id}/read",
+        "description": "Authenticated, recipient or group scoped. Voice uploads are capped at 6 MB and three minutes; personal background uploads are private.",
+        "parameters": [
+          {
+            "name": "notification_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Sign-in required"
+          },
+          "403": {
+            "description": "Invalid session check"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/notifications/{notification_id}/accept": {
+      "post": {
+        "operationId": "postapinotificationsnotificationidaccept",
+        "summary": "POST /api/notifications/{notification_id}/accept",
+        "description": "Authenticated, recipient or group scoped. Voice uploads are capped at 6 MB and three minutes; personal background uploads are private.",
+        "parameters": [
+          {
+            "name": "notification_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Sign-in required"
+          },
+          "403": {
+            "description": "Invalid session check"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/preferences/background": {
+      "get": {
+        "operationId": "getapipreferencesbackground",
+        "summary": "GET /api/preferences/background",
+        "description": "Authenticated, recipient or group scoped. Voice uploads are capped at 6 MB and three minutes; personal background uploads are private.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Sign-in required"
+          },
+          "403": {
+            "description": "Invalid session check"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      },
+      "post": {
+        "operationId": "postapipreferencesbackground",
+        "summary": "POST /api/preferences/background",
+        "description": "Authenticated, recipient or group scoped. Voice uploads are capped at 6 MB and three minutes; personal background uploads are private.",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Sign-in required"
+          },
+          "403": {
+            "description": "Invalid session check"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/preferences/background/image": {
+      "get": {
+        "operationId": "getapipreferencesbackgroundimage",
+        "summary": "GET /api/preferences/background/image",
+        "description": "Authenticated, recipient or group scoped. Voice uploads are capped at 6 MB and three minutes; personal background uploads are private.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Sign-in required"
+          },
+          "403": {
+            "description": "Invalid session check"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      },
+      "put": {
+        "operationId": "putapipreferencesbackgroundimage",
+        "summary": "PUT /api/preferences/background/image",
+        "description": "Authenticated, recipient or group scoped. Voice uploads are capped at 6 MB and three minutes; personal background uploads are private.",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Sign-in required"
+          },
+          "403": {
+            "description": "Invalid session check"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteapipreferencesbackgroundimage",
+        "summary": "DELETE /api/preferences/background/image",
+        "description": "Authenticated, recipient or group scoped. Voice uploads are capped at 6 MB and three minutes; personal background uploads are private.",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Sign-in required"
+          },
+          "403": {
+            "description": "Invalid session check"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/rooms/{room_id}/solo": {
+      "post": {
+        "operationId": "postapiroomsroomidsolo",
+        "summary": "Private conversation solo",
+        "description": "Authenticated owner only for live sessions and transcripts. Server API keys never reach the browser.",
+        "parameters": [
+          {
+            "name": "room_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Sign-in required"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/rooms/{room_id}/live": {
+      "post": {
+        "operationId": "postapiroomsroomidlive",
+        "summary": "Private conversation live",
+        "description": "Authenticated owner only for live sessions and transcripts. Server API keys never reach the browser.",
+        "parameters": [
+          {
+            "name": "room_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Sign-in required"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/rooms/{room_id}/live/transcript": {
+      "post": {
+        "operationId": "postapiroomsroomidlivetranscript",
+        "summary": "Private conversation transcript",
+        "description": "Authenticated owner only for live sessions and transcripts. Server API keys never reach the browser.",
+        "parameters": [
+          {
+            "name": "room_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Sign-in required"
+          },
+          "404": {
+            "description": "Not found"
           }
         }
       }
