@@ -97,9 +97,15 @@ def register_workspace(app, store, drive, accessible, admin, data, uid, digest, 
     def preview_file(room_id, file_id):
         with store.connect() as db:
             accessible(db, room_id)
-            file = db.execute('SELECT filename,content FROM artifacts WHERE room_id=? AND id=?', (room_id, file_id)).fetchone()
+            file = db.execute('SELECT filename,content,mime,meta FROM artifacts WHERE room_id=? AND id=?', (room_id, file_id)).fetchone()
         if not file:
             abort(404, 'File not found.')
+        import json
+        meta=json.loads(file['meta'])
+        if meta.get('kind') in ('presentation','image_document'):
+            return jsonify(kind=meta['kind'],title=meta.get('title',file['filename']),meta=meta)
+        if file['mime']=='video/mp4' and file['content'][4:8]==b'ftyp':
+            return send_file(io.BytesIO(file['content']),mimetype='video/mp4',as_attachment=False,download_name='preview.mp4')
         try:
             kind, mime, content = file_preview(file['filename'], file['content'])
         except ValueError:
@@ -225,6 +231,20 @@ def register_workspace(app, store, drive, accessible, admin, data, uid, digest, 
         with store.connect() as db:
             store.audit(db, room_id, g.user['name'], 'drive_saved', current['title'])
         return jsonify(value), 201
+
+    @app.post('/api/rooms/<room_id>/drive/save-file')
+    def save_file_drive(room_id):
+        d=data()
+        with store.connect() as db:
+            accessible(db,room_id)
+            file=db.execute('SELECT * FROM artifacts WHERE id=? AND room_id=?',(field(d,'file_id',100),room_id)).fetchone()
+            if not file:abort(404,'File not found in this chat.')
+        try:value=drive.copy_asset(room_id,field(d,'mount_id',100),d.get('folder_id'),file)
+        except (ValueError,RuntimeError) as exc:abort(400,str(exc))
+        with store.connect() as db:
+            accessible(db,room_id)
+            store.audit(db,room_id,g.user['name'],'file_copied_to_drive',file['filename'])
+        return jsonify(value),201
 
     @app.post('/api/rooms/<room_id>/drive/branch')
     def branch_drive(room_id):

@@ -121,7 +121,7 @@ class Drive:
             raise ValueError('Google account not connected.')
         return dict(row)
 
-    def api(self, connection_id, path, method='GET', payload=None, params=None, raw=False, media=None):
+    def api(self, connection_id, path, method='GET', payload=None, params=None, raw=False, media=None, media_mime='application/vnd.openxmlformats-officedocument.wordprocessingml.document'):
         connection = self.connection(connection_id)
         token = self.token_request(dict(grant_type='refresh_token', refresh_token=self.unseal(connection['token'])['refresh_token']))
         headers = {'Authorization': 'Bearer ' + token['access_token']}
@@ -131,7 +131,7 @@ class Drive:
             base = 'https://www.googleapis.com/upload/drive/v3/'
             boundary = 'wm-' + secrets.token_hex(12)
             headers['Content-Type'] = 'multipart/related; boundary=' + boundary
-            body = ('--' + boundary + '\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n' + json.dumps(payload) + '\r\n--' + boundary + '\r\nContent-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document\r\n\r\n').encode() + media + ('\r\n--' + boundary + '--\r\n').encode()
+            body = ('--' + boundary + '\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n' + json.dumps(payload) + '\r\n--' + boundary + '\r\nContent-Type: ' + media_mime + '\r\n\r\n').encode() + media + ('\r\n--' + boundary + '--\r\n').encode()
         elif payload is not None:
             headers['Content-Type'] = 'application/json'; body = json.dumps(payload).encode()
         return self.http(base + path + '?' + urllib.parse.urlencode(params or {}), method, body, headers, raw)
@@ -211,6 +211,20 @@ class Drive:
         if self.within(mount, parent)['mimeType'] != FOLDER:
             raise ValueError('Choose a folder.')
         return self.api(mount['connection_id'], 'files', 'POST', {'name': name, 'mimeType': FOLDER, 'parents': [parent]}, {'supportsAllDrives': 'true', 'fields': 'id,name,webViewLink'})
+
+    def save_binary(self, room_id, mount_id, folder_id, filename, mime, content):
+        mount=self.mounted(room_id,mount_id);folder=folder_id or mount['folder_id']
+        if self.within(mount,folder)['mimeType']!=FOLDER:raise ValueError('Choose a folder.')
+        return self.api(mount['connection_id'],'files','POST',{'name':filename,'mimeType':mime,'parents':[folder]},
+                        {'uploadType':'multipart','supportsAllDrives':'true','fields':'id,name,webViewLink'},media=content,media_mime=mime)
+
+    def copy_asset(self,room_id,mount_id,folder_id,asset):
+        result=self.save_binary(room_id,mount_id,folder_id,asset['filename'],asset['mime'],asset['content'])
+        url=result.get('webViewLink','');parsed=urllib.parse.urlparse(url)
+        if parsed.scheme!='https' or parsed.hostname not in ('drive.google.com','docs.google.com'):url=''
+        with self.store.connect() as db:
+            db.execute('INSERT INTO file_drive_copies VALUES(?,?,?,?,?,?)',(secrets.token_hex(12),asset['id'],mount_id,result['id'],url,time.time()))
+        return {'saved':True,'id':result['id'],'url':url}
 
 
 def re_id(value):

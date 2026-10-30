@@ -1554,6 +1554,13 @@
                     "type": "string",
                     "minLength": 1,
                     "maxLength": 64
+                  },
+                  "attachment_ids": {
+                    "type": "array",
+                    "maxItems": 10,
+                    "items": {
+                      "type": "string"
+                    }
                   }
                 },
                 "required": [
@@ -2585,6 +2592,45 @@
           }
         }
       }
+    },
+    "/api/rooms/{room_id}/drive/save-file": {
+      "post": {
+        "operationId": "save_file_drive",
+        "summary": "Copy a saved group image or file to a connected Drive folder",
+        "description": "Requires group membership, a mounted Drive folder and CSRF. Preserves original bytes and records the confirmed remote ID.",
+        "parameters": [
+          {
+            "name": "room_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Confirmed Drive copy"
+          },
+          "400": {
+            "description": "Invalid input or Drive error"
+          },
+          "401": {
+            "description": "Sign in required"
+          },
+          "404": {
+            "description": "File not in this chat"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2659,13 +2705,20 @@
               "enum": [
                 "branch_document",
                 "code_interpreter",
+                "create_image_document",
+                "create_presentation",
+                "create_slideshow",
                 "create_task",
                 "drive_branch",
                 "drive_list",
                 "drive_read",
                 "drive_save",
+                "drive_save_file",
+                "generate_images",
                 "image_generation",
+                "list_saved_files",
                 "read_document",
+                "read_saved_image",
                 "save_document",
                 "search_documents",
                 "update_document",
@@ -2728,13 +2781,20 @@
               "enum": [
                 "branch_document",
                 "code_interpreter",
+                "create_image_document",
+                "create_presentation",
+                "create_slideshow",
                 "create_task",
                 "drive_branch",
                 "drive_list",
                 "drive_read",
                 "drive_save",
+                "drive_save_file",
+                "generate_images",
                 "image_generation",
+                "list_saved_files",
                 "read_document",
+                "read_saved_image",
                 "save_document",
                 "search_documents",
                 "update_document",
@@ -3038,13 +3098,20 @@
               "enum": [
                 "branch_document",
                 "code_interpreter",
+                "create_image_document",
+                "create_presentation",
+                "create_slideshow",
                 "create_task",
                 "drive_branch",
                 "drive_list",
                 "drive_read",
                 "drive_save",
+                "drive_save_file",
+                "generate_images",
                 "image_generation",
+                "list_saved_files",
                 "read_document",
+                "read_saved_image",
                 "save_document",
                 "search_documents",
                 "update_document",
